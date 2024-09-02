@@ -69,7 +69,7 @@ En estos primeros intentos, iva principalmente guiado por post sueltos, y tratan
    - Crear carpetas, mover directorios y todo en terminal
    - Sudo install muchas cosas
    Y los pasos de compilar...
-   Como gajes del oficio de este paso, al parecer el comando curl si no se instala con el comando correcto,Ubuntu lo instalara con su nuevo formato que usa para manejar paquetes de los snaps, y me causo problemas con que no tiene permisos para hacer otros cambios? No se, simplemente lo tuve que instalar, fallo y la explicacion parecia mas Linux esoterica de lo que me acomoda informarme. Y Tambien, como Python3 ah reemplazado a Python2, tuve que buscar como instalar un paquete externo, porque aparentemente en una de las compilaciones que intente, se rompia porque un programa al llamar a python pedia con un comando deprecado?. Eh... bueno, me marea tratar de comprenderlo, pero instalando paquetes de los que no se nada a ciegas, eventualmente ese tema se arreglo.
+   Como gajes del oficio de este paso, al parecer el comando curl si no se instala con el comando correcto? Tambien, como Python3 ah reemplazado a Python2, tuve que buscar como instalar un paquete externo, porque aparentemente en una de las compilaciones que intente, se rompia porque un programa al llamar a python pedia con un comando deprecado?. Eh... bueno, me marea tratar de comprenderlo, pero instalando paquetes de los que no se nada a ciegas, eventualmente ese tema se arreglo.
    - Fuera de eso, efectivamente, instalar dependencias se resumio a usar:
 
    `sudo apt-get install <Paquetes pedidos en documentos de instalacion>`
