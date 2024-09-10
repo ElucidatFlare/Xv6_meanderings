@@ -147,3 +147,6 @@ Asumiendo que corrio, tambien se empieza a agregar a las llamadas del sistema, y
 
 >Log 6 ??:?? ??
 Mientras iva anotando las dependencias antes de compilar, leyendo mas atentamente el struct de Proc. ese comentario de "wait_lock must be held when using this" hace creer que no va a correr y que tengo la mitad del puzzle de momento. igual, seguire agregando las referencias y definiciones a syscall, user, usys y demas de momento y segun los resultados. extendere el informe. Si mi sospecha es cierta y se me cae, supongo que tendre que armar algo similar al myproc(), porque segun lo que lei, pop_off() y push_() tienen relacion con Locks
+
+>Log 7 ??:?? ??
+Despues de un pequeño cambio, compilo con la funcion nueva. Vere si puedo crear los test o la version recursiva para el proximo commit
