@@ -21,6 +21,13 @@ sys_getpid(void)
   return myproc()->pid;
 }
 
+
+uint64
+sys_getpid(void)
+{
+  return myproc()->parent->pid; //quizas no se rompa
+}
+
 uint64
 sys_fork(void)
 {

@@ -84,5 +84,66 @@ Parece que hay operaciones de listas por el Push y Pop. y naveba otros structs..
 Supongo que este es un buen punto para partir con la implementacion.
 
 De momento, voy a modificar usertests, creando un nuevo test y ver si lo corre dentro de XV6. Se ve perfecto ya que la descripcion dice que correra todos los tests internos, solo debo incluir la nueva funcion a la rutina. Luego crear la funcion get_ppid() dentro.
+>Addendum #3-1 ~~:~~PM
+Oh... cambio de planes por informacion nueva...
+5
 
+>Log #4 ??:?? ??
+Me lei hace unos dias los capitulos del libro hasta la clase 3 o 4, y todo tiene bastante mas sentido
 
+>Log #5 ??:?? ??
+El tiempo falta asi que documento ideas y notas para mis siguientes cambios.
+
+Tomando en cuenta que la estructura de un proceso es:
+~~~c
+// Per-process state
+struct proc {
+  struct spinlock lock;
+
+  // p->lock must be held when using these:
+  enum procstate state;        // Process state
+  void *chan;                  // If non-zero, sleeping on chan
+  int killed;                  // If non-zero, have been killed
+  int xstate;                  // Exit status to be returned to parent's wait
+  int pid;                     // Process ID
+
+  // wait_lock must be held when using this:
+  struct proc *parent;         // Parent process
+
+  // these are private to the process, so p->lock need not be held.
+  uint64 kstack;               // Virtual address of kernel stack
+  uint64 sz;                   // Size of process memory (bytes)
+  pagetable_t pagetable;       // User page table
+  struct trapframe *trapframe; // data page for trampoline.S
+  struct context context;      // swtch() here to run process
+  struct file *ofile[NOFILE];  // Open files
+  struct inode *cwd;           // Current directory
+  char name[16];               // Process name (debugging)
+};
+~~~
+El proceso posee el pionter al proceso padre.
+como getpid() basicamente invoca a myproc(), y este invoca al proceso mismo desde la cpu.
+El pseudo codigo para getppid() seria, llamar a myproc() y guardar el puntero del struct "proc" "parent"
+y luego sacar el pid de ese "proc"
+Asimismo, getancestor ejecutaria estos pasos, en un tipo de loop.
+
+El codigo resultante seria
+~~~c
+// De momento esta es solo el primer draft sin implementar.
+int64 sys_getppid(void)
+{
+  struct proc *father;
+  father = myproc()->parent;
+  return father->pid
+}
+
+// Actualmente es
+int64 sys_getppid(void)
+  { return myproc()->parent->pid; }
+~~~
+
+---
+Asumiendo que corrio, tambien se empieza a agregar a las llamadas del sistema, y traptable. y detalles para que pueda ser llamada. Se compila y se si corre
+
+>Log 6 ??:?? ??
+Mientras iva anotando las dependencias antes de compilar, leyendo mas atentamente el struct de Proc. ese comentario de "wait_lock must be held when using this" hace creer que no va a correr y que tengo la mitad del puzzle de momento. igual, seguire agregando las referencias y definiciones a syscall, user, usys y demas de momento y segun los resultados. extendere el informe. Si mi sospecha es cierta y se me cae, supongo que tendre que armar algo similar al myproc(), porque segun lo que lei, pop_off() y push_() tienen relacion con Locks
