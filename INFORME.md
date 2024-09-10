@@ -150,3 +150,8 @@ Mientras iva anotando las dependencias antes de compilar, leyendo mas atentament
 
 >Log 7 ??:?? ??
 Despues de un pequeño cambio, compilo con la funcion nueva. Vere si puedo crear los test o la version recursiva para el proximo commit
+
+>Log 8 ??:?? ??
+Lo que sea que hice para ppid en syscall no sirve para ancestor.
+ - [!] Pin: Implementar Ancestor en tiempo libre
+Retomando el test. en este commit agregare el "yosoytupadre.c" y vere si compila.

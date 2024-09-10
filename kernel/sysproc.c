@@ -29,6 +29,17 @@ sys_getppid(void)
 }
 
 uint64
+sys_getancestor(void)
+{
+  struct proc *currp;
+  currp = myproc();
+  for (int i=0; i<3; i++){
+    currp = currp->parent; //Suena muy falso que compile sin testear
+    } 
+  return currp->pid;
+}
+
+uint64
 sys_fork(void)
 {
   return fork();
