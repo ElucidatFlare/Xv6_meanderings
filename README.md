@@ -229,3 +229,6 @@ Hora de la parte que menos queria armar Testing...
 
 Como no arme testing en la T1, supongo que voy a aprender como funcionan aca.
 Todo parece trabajar en C. entonces... vere si puedo basarme en algun script de la carpeta user. o quizas el libro del ramo.
+Combinando partes de usertests.c y elementos del capitulo 5 del libro. Avanzo en poder generar un ejecutable. Estos intentos de momento son puestos a prueba en possum.c Pensaba cambiarle el nombre despues, pero me doy cuenta que no hay requerimiento para el nombre de este... Por consiguiente, la zarigueya se queda.
+
+De momento fork funciona. Todavia no encuentro como obtener todos los datos para printear, y armar el Test definitivo. Pero es un avance. Fin del registro.
