@@ -106,3 +106,29 @@ Me dejara?... Al invocar el "allocproc()"  manejo 1 "lock" del proceso mismo. Si
 Creo que en este punto ya se va a empezar a complicar...
 De momento. supongo que podria diseñar una funcion que itere la proctable y aumente la prioridad.
 
+> Log 05
+Despues de distraerme un rato viendo el scheduler, y debatiendo si tendria que leer como funciona los contextos y el contextswitch. Me di cuenta que no considere que pasa en los edge cases de aumentar la prioridad. y que asumia que era un priority++. Leyendo la lista de Detalles, entonces, si agrego una funcion increment_priority() (Pensare en un mejor nombre luego) en algun punto del codigo, la logica seran los otros objetivos de la entrega.
+
+Ok, hacer una funcion que tenga:
+"""
+    if ( p->priority == 9){p->boost =-1};
+    if ( p->priority == 0){p->boost = 1};
+    p->priority += p->boost;
+"""
+Suena sencillo, pero y al menos ese seria el incremetador, ahora voy a ver donde poner la funcion que itere sobre todos los procesos, y que no rompa todo con el manejo de los candados...
+Curioso, la prioridad solo se modificaria al crear nuevos procesos... y no me piden que agregue esta prioridad a la toma de decisiones del scheduler. Que bueno, porque sino seria mas complejo.
+...
+Agregue de momento "priority_next()" en proc.c con la logica descrita en este log.
+"""
+// Priority Increment
+void
+priority_next(struct proc *p)
+{
+  if ( p->priority == 9)
+    p->boost =-1;
+  if ( p->priority == 0)
+    p->boost = 1;
+  p->priority += p->boost;
+}
+"""
+No parece crashear. Pero claro, no estoy cambiando nada dinamicamente aun...

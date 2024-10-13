@@ -440,10 +440,7 @@ wait(uint64 addr)
 
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
-// Scheduler never returns.  It loops, doing:
-//  - choose a process to run.
-//  - swtch to start running that process.
-//  - eventually that process transfers control
+// release/  - eventually that process transfers control
 //    via swtch back to the scheduler.
 void
 scheduler(void)
@@ -696,4 +693,15 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// Priority Increment
+void
+priority_next(struct proc *p)
+{
+  if ( p->priority == 9)
+    p->boost =-1;
+  if ( p->priority == 0)
+    p->boost = 1;
+  p->priority += p->boost;
 }
