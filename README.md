@@ -9,20 +9,33 @@ de prioridades.
 
 ## Parte I: Incorporar Prioridad
 
-### Agragar un cambio de prioridad
+ - [X] Agragar un cambio de prioridad
 
-### Inicializar prioridad en 0
+ - [X] Inicializar prioridad en 0
 
 ## Parte II: Incorporar Boost
 
-### Agragar un cambio de prioridad
+- [X] Agragar un cambio de prioridad
 
-### Inicializar en 1
+- [X] Inicializar en 1
 
 ## Consejos (Hints)
 
  * Revizar el codigo existente en Xv6
  * Documentar las modificaciones
+
+## Detalles
+
+
+ - [X]    Al código fuente de xv6, agregar un campo de prioridad a la estructura de proceso.
+ - [X]    Inicializar la prioridad de cada proceso en 0 (menor número = mayor prioridad).
+ - [X]    Agregar un campo de boost a la estructura de proceso.
+ - [X]    Inicializar el boost en 1.
+ - [ ]    Cada vez que un proceso ingresa, aumentar la prioridad de todos los procesos existentes que puedan ser ejecutados (no zombies).
+ - [ ]    Implementar la lógica: Prioridad += Boost.
+ - [ ]    Si la prioridad alcanza 9, cambiar el boost a -1.
+ - [ ]    Si la prioridad llega a 0, cambiar el boost a 1.
+ - [ ]    Crear programa de prueba.
 
 ## Pruebas
 
@@ -81,4 +94,15 @@ Y como para todo constructor hay que tambien el destructor, agrege a freeproc() 
 Ahora a ver si compila con estos cambios.
 Exito.
 
+> Log 04
+ Parece que todavia me quedaba mas de lo que creia...
+    "Cada vez que un proceso ingresa, aumentar la prioridad de todos los procesos existentes que puedan ser ejecutados (no zombies)."
+Entonces... "poder ser ejecutados" seria "Run-able"?, ṕor lo que:
+    - al crear un proceso, 
+    - priority++ if case.
+    Pero, sera solo aumentar en "Runnable"? Debiera incluir "Sleeping" y "Running?".
+Al menos "Used" no creo, ya que es el paso previo a Runnable, y cuando se utiliza es crear el proceso, por lo que creo que es la mejor posicion para implementar el priority++. Pero...
+Me dejara?... Al invocar el "allocproc()"  manejo 1 "lock" del proceso mismo. Si mando a aumentar la prioridad del resto de los procesos... estoy trabajando fuera de este lock... y si no me deja?...
+Creo que en este punto ya se va a empezar a complicar...
+De momento. supongo que podria diseñar una funcion que itere la proctable y aumente la prioridad.
 
