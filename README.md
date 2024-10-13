@@ -31,10 +31,10 @@ de prioridades.
  - [X]    Inicializar la prioridad de cada proceso en 0 (menor número = mayor prioridad).
  - [X]    Agregar un campo de boost a la estructura de proceso.
  - [X]    Inicializar el boost en 1.
- - [ ]    Cada vez que un proceso ingresa, aumentar la prioridad de todos los procesos existentes que puedan ser ejecutados (no zombies).
- - [ ]    Implementar la lógica: Prioridad += Boost.
- - [ ]    Si la prioridad alcanza 9, cambiar el boost a -1.
- - [ ]    Si la prioridad llega a 0, cambiar el boost a 1.
+ - [X]    Cada vez que un proceso ingresa, aumentar la prioridad de todos los procesos existentes que puedan ser ejecutados (no zombies).
+ - [X]    Implementar la lógica: Prioridad += Boost.
+ - [X]    Si la prioridad alcanza 9, cambiar el boost a -1.
+ - [X]    Si la prioridad llega a 0, cambiar el boost a 1.
  - [ ]    Crear programa de prueba.
 
 ## Pruebas
@@ -132,3 +132,83 @@ priority_next(struct proc *p)
 }
 """
 No parece crashear. Pero claro, no estoy cambiando nada dinamicamente aun...
+
+> Log 06 (Ignore This)
+Con la esperanza de no tener que hacer los test antes de continuar. Meror dejo un registro de los apuntes de los"Locks", porque se que si no los reviso me van a traer problemas.
+
+Los candados estan en Spinlock .c y .h ; 
+- Contienen el flag del lock, un nombre y el cpu asignado.
+Entre las funciones esta el 
+- inicializador. Holding para checkear. y Acquire()/Release() son similares a push_off()/pop_off(), pero los primeros requieren el *spinlock. Los primeros llaman a los segundos para abrir o cerrar los candados. pero hacen unas cuantas cosas mas, pero no creo que me sirva por ahora anotar mas al respecto.
+
+En proc.c se usan 3 spinlocks. "pid_lock", con nombre "nextpid" solo se llama cuando se alloca la ID.
+"struct proc->lock", con nombre "proc". Es el lock de cada proceso.
+"wait_lock" con nombre "wait_lock". //Comentarios implican que es importante dentro de el sistema y la memoria. Pero mantendre en cuanta que es obligacion adquirirlo previamente a invocar cualquier p->lock.
+(Al menos a lo que respecta con procesos Padre-Hijo?)
+
+Wait_lock es llamado en: fork, exit y wait.
+    Durante el periodo Adquirido se modifican "proc->parent", se llama reparent() y wakeup() pero parece que todo wait_lock es adquirido y liberado dentro de la misma funcion que lo llama---
+    Aunque algunos proc Locks quedan adquiridos sin release (dentro). Supongo que no todas los aquire/release seran dentro de estos wait_locks entonces... Pero ahora debo segir el rastro de releases en general.
+Tomando nota de esto:
+allocproc(): acquires todos y libera si esta utilizado, o se cae durante su ejecucion.
+    Si Unused... inicializa, si se cae, libera. y no parece liberar si retorna p.
+    (returns Locked proc)
+Fork invoca este *p, y lo libera justo antes de trabajar en waitlock. desíes adqioere y libera el candado. (No Locks)
+userinit(): trabaja este *p como initproc... pero lo libera al final (Return no locks)
+exit (): adquiere el Wait, luego adquiere un Lock, libera el wait, pero no libera el proc (return 1 Lock)
+wait(): adquiere el wait. Se manda un Loop. Si es que todo esta abierto. Debiera adquirir Locks, y por condiciones liberar el lock y el wait, o solo el lock. y eventualmente el wait. No parece dejar Locks sueltos, pero se trabaria si uno de los Locks esta cerrado mientras corre (Returns no Locks)
+sleep(): 1 acquire, y manda un release a un lock externo?, pero Libera el lock y adquiere el externo antes de terminar. (No locks)
+wakeip(): segun el channel, itera procs, lockeando al observar y liberando al salir. (no lock out)
+kill(): similar, iter, lock, check, release.
+setkilled(), killed(): adquiere y libera rapidamente
+yield() parace abrir i cerrar, con un sched() de por medio.
+scheduler(), Tambien itera, pero abre y cierra...
+No tengo idea donde termina abriendose el Lock de Exit(), me preocupa. Que pueda causarme problemas a futuro. Supongo que le preguntare al profe la proxima clase sobre esto.
+...
+Despues de meditar un rato. Supongo que no no sirve quedarse con miedo a romper el sistema.
+
+> Log 07
+Entonces, hay muchas funciones que iteran sobre la tabla de procesos. abriendo y cerrando candados.
+Hay que modificar prioridades al crear nuevos procesos.
+Si se aplica en allocproc(), tendria que ser en el punto previo a retornar el *p, porque sino estaria boosteando en casos que el proceso no se cree exitosamente. en ese punto, existe el Lock del proceso que crea el puntero. Por lo que no podria copiar la iteracion que se aplica en otras funciones... No quiero imaginar que pasa si llamo a un aquire a un lock dentro del codigo que ya esta adquirido.
+
+Ante eso mi idea seria.
+
+"""
+     for(p2 = proc; p2 < &proc[NPROC]; p2++) {
+         if (&p2 == &p){
+            continue
+        }
+        acquire(&p->lock);
+         if (p2->state == RUNNABLE)
+            increment_priority:
+        release(&p->lock);
+"""
+Supongo que el primer condicional saltaria el proceso actual. Evitando adquirir el proceso actual. Pero no tengo idea si funcionara.
+Addendum: COnsiderando que piden "puedan ser ejecutados", Runnable es claramente si. Pero poder ser ejecutado, y estar siendo ejecutado son bastante diferentes... y estar durmiendo no es exactamente estar disponible para ser ejecutado... asumire que solamente suba la prioridad a runnable.
+Addendum2; Reparent justamente tiene una iteracion a travez de toda la tabla y compara que 2 pointers apunten al mismo. Creo que me guiare por esto y corregire mi codigo hipotetico
+Termine implementando la rutina en proc.c como:
+"""
+void
+boost_runnable(struct proc *p)
+{
+  struct proc *np;  //Process different of *p
+
+  for(np = proc; np < &proc[NPROC]; np++){ //Itera sobre toda la tabla
+    if(np == p){  //Se salta el candado actual
+      continue;
+    }
+    if(np != p){
+      acquire(&np->lock);
+      if(p->state == RUNNABLE) {  // Por descarte es solo este caso.
+        priority_next(p);
+      }
+
+      release(&np->lock);
+    }
+  }
+}
+"""
+
+No parece crashear al compilar. Pero no puedo verificar si este funcionando como planee.
+Hora de formular los Tests.

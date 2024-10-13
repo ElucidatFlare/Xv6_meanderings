@@ -705,3 +705,24 @@ priority_next(struct proc *p)
     p->boost = 1;
   p->priority += p->boost;
 }
+
+
+void
+boost_runnable(struct proc *p)
+{
+  struct proc *np;  //Process different of *p
+
+  for(np = proc; np < &proc[NPROC]; np++){ //Itera sobre toda la tabla
+    if(np == p){  //Se salta el candado actual
+      continue;
+    }
+    if(np != p){
+      acquire(&np->lock);
+      if(p->state == RUNNABLE) {  // Por descarte es solo este caso.
+        priority_next(p);
+      }
+
+      release(&np->lock);
+    }
+  }
+}
