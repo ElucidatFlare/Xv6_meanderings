@@ -2,37 +2,47 @@
 //#include "kernel/stat.h"
 #include "user/user.h"
 
+
 int main(int argc, char *argv[]) {
 
-    // writing print statement to print hello world
-    //printf("Hello World");
     //    write(1, "Greetings my good Fellow!\n", 26);
-    printf("Greetings my good Fellow!\n\n");
-
+    //printf("Greetings my good Fellow!\n\n");
 
     int pid;
     //int xstatus;
     char *s;
-    s = "String";
-    int st = 1000;
+    s = "OwO";
+    int st = 1234567;
+    st++;
+    int nfork;
+    nfork = 20;
+    printf("Initiating Program\n\n");
 
-    pid = fork();
-    if(pid < 0){
-        printf("%s: fork failed\n", s);
-        exit(1);
+    printf("[ PID ]:%d Main Process!\n\n", (int) getpid() );
+    sleep(10);
+    printf("Por cada 1 segundo, un nuevo proceso se creara. \n");
+    printf("Este Dormira hasta que todos los procesos se creen\n\n");
+
+    for (int i=0; i<nfork; i++){
+        
+        pid = fork();
+        if(pid < 0){printf("%s: fork failed\n", s); exit(1);
+        }
+
+        if(pid == 0){
+            for(;;){  
+                printf("Ejecutando proceso possum [ PID ]:%d\n\n", (int) getpid() );
+
+            sleep(nfork*10);
+            }
+            exit(0);
+        } else {
+            sleep(10);
+            //return 0;
+        }
+
     }
-    if(pid == 0){
-        printf("%s: Fork Process\n", s);
-    } else {
-        int rc_wait = wait(&st);
-
-        printf("%s: Original Process\n", s);
-        printf("Well... Wait:%d\n", rc_wait);
-    }
-    return 0;
-
-
-
 
     return 0;
 }
+

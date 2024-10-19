@@ -147,7 +147,7 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
-
+  
   return p;
 }
 
@@ -291,6 +291,7 @@ fork(void)
   if((np = allocproc()) == 0){
     return -1;
   }
+  boost_runnable(np);        //★
 
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
@@ -681,48 +682,81 @@ procdump(void)
   };
   struct proc *p;
   char *state;
-
+  char *boost;
   printf("\n");
-  for(p = proc; p < &proc[NPROC]; p++){
-    if(p->state == UNUSED)
-      continue;
+  //for(p = proc; p < &proc[NPROC]; p++){
+  for(p = proc; p < &proc[NPROC/2]; p++){   // Solo printea la mitad para Debuguear
+    
+    //if(p->state == UNUSED)
+      //continue;
     if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
       state = states[p->state];
     else
       state = "???";
+    boost = (p->boost >0) ? "+" : ((p->boost <0) ? "-" : "X");
+    printf("%d %s - ", p->priority, boost);
     printf("%d %s %s", p->pid, state, p->name);
+
     printf("\n");
   }
 }
+
+
+
+void
+boost_runnable(struct proc *np)
+{
+  /*
+  char *state;
+  static char *states[] = {
+    [UNUSED]    "unused",
+    [USED]      "used",
+    [SLEEPING]  "sleep ",
+    [RUNNABLE]  "runble",
+    [RUNNING]   "run   ",
+    [ZOMBIE]    "zombie"
+  };
+  */
+  struct proc *p;
+  int tea = 0;
+  for(p = proc; p < &proc[NPROC]; p++){ //Itera sobre toda la tabla
+    /*
+    if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
+        state = states[p->state];
+    else  state = "???";
+    printf("%d %s %s", p->pid, p->name, state);
+    printf("\n");
+    */
+    //printf("★ %d %d %d\n", np->priority, np->boost+1, np->pid);//Check If logic works
+    if(np == p){  //Se salta el candado actual
+    //printf("★P %d %d %d\n", p->priority,  p->pid,p->boost);//Check If logic works
+    //printf("NP %d %d %d\n", np->priority,  np->pid,np->boost);//Check If logic works
+
+      continue;
+    }
+    if(np != p){
+      acquire(&p->lock);
+      if(p->state == RUNNABLE ) {  // Por descarte es solo este caso.
+      //if(p->state == RUNNABLE || p->state == RUNNING ) {  // Por descarte es solo este caso.
+        //printf("★ %d %d %d\n", p->priority, p->boost+1, p->pid);//Check If logic works
+        priority_next(p);
+        //printf("★P %d %d %d\n", p->priority,  p->pid,p->boost);//Check If logic works
+        tea++;
+      }
+      release(&p->lock);
+    }
+  }
+}
+
 
 // Priority Increment
 void
 priority_next(struct proc *p)
 {
+  //printf("★ %d %d %d\n", p->priority, p->boost+1, p->pid);//Check If logic works
+  p->priority += p->boost;
   if ( p->priority == 9)
     p->boost =-1;
-  if ( p->priority == 0)
+  else if ( p->priority == 0)
     p->boost = 1;
-  p->priority += p->boost;
-}
-
-
-void
-boost_runnable(struct proc *p)
-{
-  struct proc *np;  //Process different of *p
-
-  for(np = proc; np < &proc[NPROC]; np++){ //Itera sobre toda la tabla
-    if(np == p){  //Se salta el candado actual
-      continue;
-    }
-    if(np != p){
-      acquire(&np->lock);
-      if(p->state == RUNNABLE) {  // Por descarte es solo este caso.
-        priority_next(p);
-      }
-
-      release(&np->lock);
-    }
-  }
 }

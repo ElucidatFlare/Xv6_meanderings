@@ -35,7 +35,7 @@ de prioridades.
  - [X]    Implementar la lógica: Prioridad += Boost.
  - [X]    Si la prioridad alcanza 9, cambiar el boost a -1.
  - [X]    Si la prioridad llega a 0, cambiar el boost a 1.
- - [ ]    Crear programa de prueba.
+ - [X] ?   Crear programa de prueba.
 
 ## Pruebas
 
@@ -223,12 +223,94 @@ Hora de formular los Tests.
 > Log 08
 
 Hora de la parte que menos queria armar Testing...
- - [ ] Forkear 20 procesos
- - [ ] Cada proceso tiene un print en pantalla
- - [ ] Aplicar Sleep para que hayan pausas...
+ - [X] Forkear 20 procesos
+ - [X] Cada proceso tiene un print en pantalla
+ - [X] Aplicar Sleep para que hayan pausas...
 
 Como no arme testing en la T1, supongo que voy a aprender como funcionan aca.
 Todo parece trabajar en C. entonces... vere si puedo basarme en algun script de la carpeta user. o quizas el libro del ramo.
 Combinando partes de usertests.c y elementos del capitulo 5 del libro. Avanzo en poder generar un ejecutable. Estos intentos de momento son puestos a prueba en possum.c Pensaba cambiarle el nombre despues, pero me doy cuenta que no hay requerimiento para el nombre de este... Por consiguiente, la zarigueya se queda.
 
 De momento fork funciona. Todavia no encuentro como obtener todos los datos para printear, y armar el Test definitivo. Pero es un avance. Fin del registro.
+
+> Log 09 - Experimentando y reevaluando lo que llevo
+
+Si todo va bien, este debiera ser el penultimo reporte.
+Veo que cosas no puedo y si puedo llamar... Quisiera printear toda la tabla de procesos. Pero la buena arquitectura del sistema operativo me lo impide. Supongo que puedo vivir solo de getpid, fork, wailt, exit, y sleep.
+Vaya, ctrl+P es como invoco al procdump(). Interesante...
+
+Esperen un momento. "Ejecutando proceso <nombre> <pid>"? De donde saco <nombre>? Me lo invento?.
+...
+
+De momento puedo obtener el pid actual. Supongo que el nombre es para diferenciarlos?. Pero... como puedo comprobar que el campo de Prioridad funciona?. SUpongo... que podria crear una nueva llamada al sistema..., que explicitamente me entrege aquella informacion.
+Pero una ves hecho esto.  Que es lo que tendria que cambiar?... 
+
+Depues de una pausa. Veo que me falta bastante...
+
+Ok. Si corro el programa con solo prints. Y mando ^P Solo me salen 2 procesos. Y si mando ^P Rapidamente mientras printea, Alcanza a marcar el processo del programa "Running".
+Pero despues se cierra
+
+Creo que deberia hacer que los procesos se mantengan corriendo continuamente en Loops. Con el Sleep para que puedan ir alternandose.
+Y pensando en esto. Todavia no eh aplicado cambios en el scheduler para que tome en cuenta la prioridad al momento de elegir el programa a correr.
+Si los dejo en Loops, debiera tenerlos corriendo constantemente al triguerear un procdump con ^P.
+
+> Log 09
+
+Continuando con el desarrollo de los test. Modique procdump para ver si la prioridad y el boos existian en los procesos.
+Despues de ver que si, me di cuenta que no incorpore el cambio de prioridad dentro de alguna funcion. Una vez echo esto,
+temporalmente con un print verifique que el valor de prioridad si existiera, y que cambiara segun las especificaciones.
+Xv6 abre 2 procesos al iniciar el sistema. init y sh. Por consiguiente, al abrir en este experimento, debia printearse la prioridad a medida que iva cambiando.
+Como no habian programas "Runnable/Running" decidi agregar "Sleeping" para este test. y curiosamente, Printio el cambio de prioridad de [0-9-0-9-0-9-0-9], osea, que daba 3.5 vueltas y luego se detenia la consola esperando input de usuario.
+Lo cual me extraña, porque no se da la ultima vuelta de prioridad 9 a 0. Imagino que en el codigo del terminal, es el punto que se manda el Wait for user input, pero es solo mi supocision al momento de redactar.
+
+Con el conocimiento que boost_runnable() y priority_next() Pueden correr y cambian la prioridad de la forma deseada. el siguiente paso seria, continuar con el test de 20 forks... y que el scheduler tome prioridad para ejecutar procesos
+
+Retractando los ultimos descubrimientos, hay errores en el codigo de momento. descubri porque habian tantos 0-9-0-9, era el boost ocurriendo 63 veces, por un error en el codigo. pero ahora que lo corregi, no sube la prioridad cuando quiero.
+Al parecer, con solo RUNNABLE, nunca correra el boost, pero con RUNNING, recorrera todo los 64-1 procesos, y libera el 3... creo que mejor dejo de registrar en detalle, simplemente, hay mas que trabajar.
+Teorizando... ya que el scheduler esta intacto, y si boostea todo running al ejecutar fork, excepto, el proceso mismo. significa que en cuando se ejecuta, por alguna razon incluye a todos los registros de PCB incluso si este es unused... oh, sera... que todavia lo tengo malo? y que no estoy checkeando el proceso correcto en la funcion?
+Me es comico, que supuestamente este informe es como el reportaje de la resolucion, pero aqui ando yo anotandolo como el diario de investigacion, y como mi rubber ducky de programacion para meditar sobre donde estoy metiendo la pata.
+Yep. No esta avanzando el pointer en el struct...
+Boost_Runnable ahora parece una copia de procdump. Ṕero es interesante la diferencia de los print que entrega...
+Cuando mando procdump, como se ejecuta con la terminal esperando input usualmente, init y sh estan sleep.
+Pero de momento, sh lo encuentra en running, y el tercer proceso en memoria en used.
+...
+
+Y todo mi error era un simple condicional mal redactado... podria ser peor, al menos no era un ";" faltante que se echaba todo
+
+Ok, creo que ahora si. Mejoro.
+
+> Log 10
+
+Tuve que arreglar varias cosas en proc, agregar otras a defs... Pero creo que no falla el boost y lo recorre correctamente.
+Procedi a continuar con el ptograma de prueba. Y si segun veo, Creo que puedo volver y marcar [X] en mi lista.
+Crea los 20 procesos, con una pausa en la creacion de cada proceso, puedo mandarle un print "ejecutando <PID>", y los dejo en sleep() lo suficiente para que no se interrumpan entre ellos.
+
+Si mando un procdump() con Ctrl+p La prioridad de init y sh se ve inafectada.
+Y parece que cada nuevo fork del programa del test "Possum" mueve la prioridad de los procesos adjacententes segun lo planeado.
+Si bien, segun lo que tenia en mi bullet list esta completado. 
+Siento que quisas no eh completado el objetivo principal?
+ - [ ] Modificar Scheduler para que tome en cuenta la prioridad
+ - [ ] Modificar el test para que el print ocurra en el main?
+ - [ ] Modificar el test para que el unico sleep sea en el main y no los forks?
+ - [ ] Modificar el test para que el unico sleep sea en el main?
+
+ A ver... La evaluacion es... implementaion de la estructura de prioridad y boost... y el test con integracion.
+Dice la estructura, pero eso incluira los mecanismos de scheduling segun esta?
+...
+"Cada vez que un proceso ingresa"... Sera ingresa a ser ejcutado y no ingresa al PCB al ser creado?...
+
+Mejor no le doy vueltas mas. Voy a preguntar y finalizare este Log de progreso.
+Si no hay mas Logs, Es que andaba bien, Quizas venga a editar el README y quitar las vueltas innecesarias y resumir.
+
+Entonces. Como instrucciones de mi entrega actual:
+
+Compilar: ´$ make -s qemu´
+
+Correr Test: ´$ ṕossum´
+
+Chechear los procesos en memoria con CTRL + P.
+El print tiene estructura:  
+  <Priority> <BoostType> - <PID> <State> <Process Name>
+(Boostype es "+"== 1; "-"== -1; "X"==Unused )
+
+Por ahora. Cambio y fuera.
