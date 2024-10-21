@@ -314,3 +314,66 @@ El print tiene estructura:
 (Boostype es "+"== 1; "-"== -1; "X"==Unused )
 
 Por ahora. Cambio y fuera.
+
+> Log 11
+
+Querido diario. Es lo que me temia, esto no ah terminado. Hora de meter la llave de tuercas al scheduler.
+
+A tomar notas de investigacion preliminar.
+
+Poniendo un print previo al "For loop":
+Numero de veces que se llama Scheduler: 3. 1 antes de hart 1. 2 despues de hart 2.
+Tengo 2 o 3 cpus?. 
+
+Poniendo un print Dentro del "For Loop":
+Segun parece. Por cada linea principal de un proceso, se recorre un ciclo en el loop infinito del scheduler.? o quizas sea por Instruccion.
+
+Poniendo un print Dentro del "For Loop" en el (if p->state == RUNNABLE):
+AL ejecutar Mi test, con un print del numero de ejecucion. Corria 7 veces antes de printear la linea de pantalla que el test posee. Asi que por default este recorre 1 instruccion por ciclo de CPU. Pero observando otros procesos. Interesante.
+
+Observando el recorrido de los procesos en la CPU Actual.
+Que el proceso este en "Sleep" no implica que el proceso no entre al scheduler. Es mas. Segun observo en este momento. "Sleep(n)" se ejecuta "n" en el scheduler antes de continuar con una nueva instruccion. Eslo lo supongo, ya que dentro del loop presente al momento de redaccion. 
+el main "Duerme" 10 veces, antes de crear otro proceso. Y este es efectivamente el numero.
+
+Entonces, el proceso en ejecucion en cada tic, es "RUNNABLE". el scheduler itera el PBC y si es RUNNABLE, dice is RUNNING TIME! lo RUNNEA.
+
+Es por eso que en una prueba manual eventualmente resulta un avanze con el formato de este extracto:
+~~~
+Ejecutando proceso possum [ PID ]:5
+
+ OuO Run 3 possum 
+ OuO Run 4 possum 
+ OuO Run 5 possum 
+ OuO Run 3 possum 
+ OuO Run 4 possum 
+ OuO Run 5 possum 
+ OuO Run 3 possum 
+ ...
+~~~
+
+Ahora. Cual es el plan? 
+Hay que siempre tomar el proceso con mayor prioridad. y que sea RUNNABLE.
+Hay que hacerlo rapido y eficiente. (?)
+Y probablemente tengo que cambiar el test y disminuir el contador de sleeps antes de la entrega.
+
+Oh... Creo que si todos la mayor extension de los estados RUNNABLE se encuentran en este proceso. Creo que "ingresa un proceso"->"Aumentar prioridad" implica que en este sector se aplica priority_boost() y no cuando se alejecuta procAlloc()
+
+Ok... Movere el procalloc al scheduler... y que corra dentro del condicional que elige el proceso.
+Si entra un proceso "Prioridad 0" este cambiara a 1. Porque sigue siendo RUNNABLE en el momento de entrar.
+Mientras el Booster Recorre los procesos para darles su Boost... Es el mejor momento para encontrar el proceso con la mejor prioridad para ejecutar despues.
+Deberia agregar una estructura que me permita conservar el mejor proceso.
+Si hay 2 procesos con la misma prioridad... supongo que el escogido y el otro continuarian con la misma prioridad si el Boost tambien es sincrono. Debiera poder evitar eso... que sean secuenciales...
+
+Si al terminar el boost, Conservo una copia de la prioridad mas alta, debo poder correr multiples procesos.
+Si trabajo con 2 indices... no, seria barato, pero no muy justo.
+Osea, la solucion seria aplicar RR... pero no quiero complicar esto mas...
+El mas justo seria tener un array con una cola dinamica con bubble sort. pero seria increiblemente caro...
+La memoria tiene 64 Procesos... Podre hacer brujeria de bits?
+
+64=2¹6, osea. 7 bits... seh... nah...
+
+Y si con 2 Indices..., se mantiene el indice del ultimo proceso ejecutado... y el primer proceso de mayor prioridad a su "derecha", Asumiendo que "Derecha es inclusive de volver a empezar desde Indice 0.
+Suena a un buen plan. Me pregunto si es la mejor opcion.
+Asi, el scheduler "Avanza", y disminuye la posibilidad de olvidar de correr procesos.
+
+Reportare los resultados y cambios en base a esta hipotesis. Cambio y fuera.

@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     int st = 1234567;
     st++;
     int nfork;
-    nfork = 20;
+    nfork = 20/4;
     printf("Initiating Program\n\n");
 
     printf("[ PID ]:%d Main Process!\n\n", (int) getpid() );
