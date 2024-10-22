@@ -449,7 +449,9 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
+  int topP;                         //★ 
   for(;;){
+    topP = 9; //★
     // The most recent p  rocess to run may have had interrupts
     // turned off; enable them to avoid a deadlock if all
     // processes are waiting.
@@ -459,23 +461,41 @@ scheduler(void)
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
-        printf(" OuO Run %d %s \n", p->pid, p->name);
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
-        
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
+        if (p->priority <= topP){ //Primera encuentra la mayor prioridad
+          topP = p->priority;
+        }
+      }
+      release(&p->lock);
+    }
+
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        if (p->priority <= topP){
+
+          printf(" CPU is Running %d %s, P&B %d %d \n", p->pid, p->name, p->priority, p->boost);
+
+          // Switch to chosen process.  It is the process's job
+          // to release its lock and then reacquire it
+          // before jumping back to us.
+          p->state = RUNNING;
+          topP = boost_runnable(p);        //★  Boost Priorities Except current
+          priority_next(p);
+          c->proc = p;
+          swtch(&c->context, &p->context);
+          
+          // Process is done running for now.
+          // It should have changed its p->state before coming back.
+          c->proc = 0;
+          found = 1;
+        }
+      
       }
       release(&p->lock);
     }
     if(found == 0) {
       // nothing to run; stop running on this core until an interrupt.
+      topP = 9; //★
       intr_on();
       asm volatile("wfi");
     }
@@ -746,49 +766,25 @@ procdump(void)
 
 
 
-void
+int
 boost_runnable(struct proc *np)
 {
-  /*
-  char *state;
-  static char *states[] = {
-    [UNUSED]    "unused",
-    [USED]      "used",
-    [SLEEPING]  "sleep ",
-    [RUNNABLE]  "runble",
-    [RUNNING]   "run   ",
-    [ZOMBIE]    "zombie"
-  };
-  */
   struct proc *p;
-  int tea = 0;
+  int toppriority = 9;
   for(p = proc; p < &proc[NPROC]; p++){ //Itera sobre toda la tabla
-    /*
-    if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
-        state = states[p->state];
-    else  state = "???";
-    printf("%d %s %s", p->pid, p->name, state);
-    printf("\n");
-    */
-    //printf("★ %d %d %d\n", np->priority, np->boost+1, np->pid);//Check If logic works
-    if(np == p){  //Se salta el candado actual
-    //printf("★P %d %d %d\n", p->priority,  p->pid,p->boost);//Check If logic works
-    //printf("NP %d %d %d\n", np->priority,  np->pid,np->boost);//Check If logic works
-
-      continue;
-    }
+    if(np == p){ continue; }
     if(np != p){
       acquire(&p->lock);
-      if(p->state == RUNNABLE ) {  // Por descarte es solo este caso.
-      //if(p->state == RUNNABLE || p->state == RUNNING ) {  // Por descarte es solo este caso.
-        //printf("★ %d %d %d\n", p->priority, p->boost+1, p->pid);//Check If logic works
+      if(p->state == RUNNABLE ) { 
         priority_next(p);
-        //printf("★P %d %d %d\n", p->priority,  p->pid,p->boost);//Check If logic works
-        tea++;
+        if (p->priority >= toppriority){
+          toppriority = p->priority;
+        }
       }
       release(&p->lock);
     }
   }
+  return toppriority;
 }
 
 
@@ -796,7 +792,6 @@ boost_runnable(struct proc *np)
 void
 priority_next(struct proc *p)
 {
-  //printf("★ %d %d %d\n", p->priority, p->boost+1, p->pid);//Check If logic works
   p->priority += p->boost;
   if ( p->priority == 9)
     p->boost =-1;

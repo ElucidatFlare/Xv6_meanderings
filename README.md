@@ -377,3 +377,22 @@ Suena a un buen plan. Me pregunto si es la mejor opcion.
 Asi, el scheduler "Avanza", y disminuye la posibilidad de olvidar de correr procesos.
 
 Reportare los resultados y cambios en base a esta hipotesis. Cambio y fuera.
+
+> Log 12
+
+Nah, colapse de cansancio antes de volver a casa. A ver que logro mandar como commit antes de que se me acabe el plazo.
+Cambie BoostRunnable de corred desde allocproc al Scheduler. Y creo que cambiare a que retorne int envez de void.
+Este int sera la prioridad Mas alta despues de boostear todo segun se requeria. El plan seria entregar tambien el indice del proceso candidato siguiente, pero me ante la hora. Vamos por el mas simple que se me ocurra.
+Wait... Armando, puedo encontrar la mayor prioridad, y despues correrlo en base eso...,
+Pero mi plan se basa en que el siguiente proceso considere el proceso anterior...
+Wait. Es un iterador de todo el array... se puede salvar aun?  No, espera. la implementacion que estoy probando no tiene memoria entre cada vuelta... aaah.
+Ok, reduje la cantidad de forks en el test para mejor legibilidad. Y viendo como funciona lo que hice.
+En la logica que arme a la rapida. Parece que en algun punto se cae.
+
+Despues de recorrer trabajar como con 4 procesos concurrentes se crashea. Esto no se ve bien.
+Pero ni veo como arreglarlo. Cambiando el sleep en Test y... ahora se estanca mas rapido.
+Algo pasara por un un edge case en la logica que aplique a la rapida... Pero, almenos por lo que puedo leer en consola.
+Almenos la Prioridad, y el Boot van avanzando con cada programa que ingresa.
+
+Mi hipotesis es que en algun punto accedo a un candado con lock por lo que la consola nunca avanza denuevo. O hay un proceso que por el cambio de su valor de prioridad, arruina el resto de la computadora...
+Wait... No, si creo que es un candado... Quedan 25 minutos, Cierro este registro. Si existe Log 13. Es que alcanze a averiguar mas. Cambio y fuera.

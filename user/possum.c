@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     int st = 1234567;
     st++;
     int nfork;
-    nfork = 20/4;
+    nfork = 20;
     printf("Initiating Program\n\n");
 
     printf("[ PID ]:%d Main Process!\n\n", (int) getpid() );
@@ -33,11 +33,11 @@ int main(int argc, char *argv[]) {
             for(;;){  
                 printf("Ejecutando proceso possum [ PID ]:%d\n\n", (int) getpid() );
 
-            sleep(nfork*10);
+            sleep(nfork*5);
             }
             exit(0);
         } else {
-            sleep(10);
+            sleep(5);
             //return 0;
         }
 
