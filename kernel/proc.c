@@ -479,7 +479,7 @@ scheduler(void)
           // to release its lock and then reacquire it
           // before jumping back to us.
           p->state = RUNNING;
-          topP = boost_runnable(p);        //★  Boost Priorities Except current
+          //topP = boost_runnable(p);        //★  Boost Priorities Except current
           priority_next(p);
           c->proc = p;
           swtch(&c->context, &p->context);
@@ -784,7 +784,7 @@ boost_runnable(struct proc *np)
       release(&p->lock);
     }
   }
-  return toppriority;
+  return 9;
 }
 
 

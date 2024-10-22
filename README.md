@@ -396,3 +396,23 @@ Almenos la Prioridad, y el Boot van avanzando con cada programa que ingresa.
 
 Mi hipotesis es que en algun punto accedo a un candado con lock por lo que la consola nunca avanza denuevo. O hay un proceso que por el cambio de su valor de prioridad, arruina el resto de la computadora...
 Wait... No, si creo que es un candado... Quedan 25 minutos, Cierro este registro. Si existe Log 13. Es que alcanze a averiguar mas. Cambio y fuera.
+
+> Log 13
+
+Si, era un problema de Locks. Si remuevo BoostRunnable(), el cual tambien trabaja con Locks, dentro del Lock el scheduler Intuia que algo se romperia.
+
+Al removerlo. EL scheduler solo opera actualmente al momento de redactar con el Boost AL PROCESO INGRESADO. y no a todos los procesos.
+Pero COmo el scheduler si escoge el Proceso con mayor prioridad. Hago entrega de el codigo tal cual. Porque segun entiendo. Esta si seria una version funcional de un scheduling con prioridad.
+
+Como palabras finales.
+
+Podria acortar este informe? Si. Pero tendria que leerlo denuevo y im sleepy.
+El Test? tiene 20 Forks. Se corre con $ possum.
+La consola sera bombardeada con prints pero segun puedo obserbar. se ejecuta todo segun el plan.
+
+Excepto con el detalle descrito unas lineas mas arriba.
+
+Lamento el aspecto de ducktape y wd40 de la construccion del codigo y resolucion. Pero No hay mucho mas que hacer.
+Gracias por su atencion. Me disculpo por el mucho texto.
+
+Commit Push Goodbye <3
