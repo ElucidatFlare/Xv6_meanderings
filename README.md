@@ -32,6 +32,10 @@ Modificar xv6 para implementar un sistema de proteccion de memoria que permita m
 # Informe de avanze
 ---
 
+> Preambulo
+
+Recomiendo saltar al Log 07 donde verdadero progreso se logro para comenzar la tarea.
+
 > Log 01
 
 Investigacion del codigo fuente y clases pasadas. Hay optimismo de conseguir el 7 en esta entrega. Memlayout se ve como un buen punto de partida.
@@ -111,3 +115,67 @@ Nota para revisar despues:
 - Evaluar si en verdad necesito un flag extra, o trabajar segun el caso W=0, R=1. (Los Flags pueden cambiar en runtime?)
 - Revisar las definiciones en memlayout.h, ya que en kvmake se llaman varios datos de ahi, y... me perdi mucho mas.
 
+> Log 05
+
+Jugando con un test de como funciona la memoria que venia en las presentaciones, viendo su posiciones
+Text en 0x000000.
+Data en 0x001000
+Heap en 0x013FF0 
+Stck en 0x003FBC 
+
+Probando agregar mas variables y datos en memoria muestra cambios en como se comportan
+static 1->2 | 0x001004 > 0x001000   
+Heap   1->2 | 0x013FF0 > 0x013FB0
+Stack  1->2 | 0x003FBC > 0x003FB8
+Pareciera que todas parten de un techo, y nuevos datos guardados van retrocediendo hasta un limite.
+Lo extraño es que variables para el stack y el heap parecen crecer en a misma direccion (Abajo)
+Por lo que el "Maximo" del heap es 0x014000 a 0x004000 donde comienza el stack.
+Pero Datos estaticos crecen en la otra direccion, partiendo de 0x001000
+Como estos movimientos son en orden de magnitur de 0x1000, 4 digitos hex, son espacios de 12 bits. (Oh!)
+
+Lo cual coincide con definido en riscv.h. PGSHIFT es 12, equicalente la longitud en bits de 0x000, y PGSize es 4096, equivalente a 0x1000. En bits 1 0000 0000 0000.
+
+Ok... entonces, Las paginas se mueven en orden del 4to hex, 
+Pg 0 Txt 
+Pg 1 Data (Crece desde inicio)
+Pg 2 Sin uso (?)
+Pg 3 Stack (Decrece desde final)
+...
+PG 20 Heap (Decrece desde final) (20 = 0x14)
+Aunque me queda el misterio de donde se escapan Las direcciones del Stack presentes antes de 0x3FBC
+Son... FF0-FBC= 0x034... 0011 0100 ?
+Si la memoria parte desde FFFF, El Heap parece guardarse 4 bits para otro propositos?
+Pero con Stack... no... Se salta F,E,D,C... No estoy seguro donte se encuentre el resto de esa memoria,
+Mmmh... probando como se mueve la direccion con mallocs... Creo me me estoy perdiendo fatal.
+
+> Log 06
+
+Intentemos de nuevo. AAAAAAAH.
+
+Decidi probar como funciona el test de prueba de la clase 10, inverstigar con el de la 8 no me llevo a ningun lado...
+
+Ok... oh! Correr Sbrk me mandaba a la cima de donde se allocaba Stack 0x04000. Woah. Simillar a como Malloc me manda a 0x14000.
+...
+Ya no se en que iva siquiera viendo como funciona la definicion de malloc y mil otras cosas.
+...Ok... umalloc termina llamando a sbrk y eso... es un syscall... y vien de sysproc.c...
+Vaya--- Procesos denuevo... Eso es un poco mas familiar... wait.
+WAIT.
+El OS trabaja todo mediante procesos, y todos los datos que eh tratado de localizar directamente en memoria segun los archivos que tienen funciones que los manejan existen referenciados en procesos. 
+kstack, sz, trapframe, pagetables, Estan todos aqui.
+Los procesos trabajan con memoria y la memoria contiene el trabajo de procesos y procesos acceden y escriben esta memoria y de memoria se cargan/guardan procesos y la tarea anterior se trabajaba con procesos, y me di 500 vueltas en el codigo fuente de memoria, y creo que mejor salgo a caminar.
+... 
+Hora de comenzar a analizar de nuevo desde un nuevo comienzo.
+Oh, ya que voy a estar con trabajando procesos puedo volver a aprovechar procdump para que me imprima todos los datos relevantes en tiempo real!.
+Se... creo que esto seria un mejor metodo que tratar de decifrar en reversa segun como responde llamar memoria haciendo diferentes cosas en el test.
+
+> Log 07
+
+Expandi la funcionalidad de procdump() en proc.c con la funcion definida abajo procdumpmore(), donde ire experimentando con obtener valores/registros que voy a trabajar.
+
+Como pequeña tangente, explore como funciona el printf interno, queria ver si se podria formatear prints, y printear el mismo dato an decimal, hex y binario.
+ "%u", "%x", "%lx" y "%llx" se veian interesantes pero resolvi a castear ints, longs, hex a pointer para poder leerlos en Hex, con la separacion de 0xFFFFF
+Los uint64 se escribian bien con "%lx" en hex y "%ld" en decimal. Pero no habia forma de que pudiera formatear el tamaño del print para que tuviera un tamaño constante. No hay forma... a menos que me ponga a modificarlo... Mejor sigo con lo que tengo de momento. No mas distracciones.
+
+Pase gran parte del dia para mejorar procdump() para Printear toda la memoria de cada proceso. Voy a ver en detalle Que registros me son de interes,
+
+Para acceder el Memory dump, Simplemente ejecutar Ctrl+p en consola.

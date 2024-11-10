@@ -691,5 +691,121 @@ procdump(void)
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
+    procdumpmore(p);
   }
+}
+
+
+/*
+
+*/
+void
+procdumpmore(struct proc *p)
+{
+
+  printf("\n");
+
+  printf("\n");
+  printf("kstack :  %p %ld\n", (void*) p->kstack , p->kstack);
+  printf("sz     :  %p %ld\n", (void*) p->sz , p->sz);
+  printf("PageT *:  %p\n", p->pagetable);     // uint64 : 512 PTEs
+  printf("TrapF *:  %p\n", p->trapframe);     // * to struct // struct (288 bytes) -> 0x120
+  //printf("Contx *:  %p\n", &(p->context) );   // struct (112 bytes) -> 0x70
+  printf("Cwd   *:  %p\n", p->cwd); // inode
+  printf("---------------------\n");
+  contextdump(  p->context);
+  printf("---------------------\n");
+  trapframedump(p->trapframe);
+  printf("---------------------\n");
+  printf("\n");
+
+  
+}
+
+void
+contextdump(struct context ctxt)
+{
+  # if 0
+  printf("ra  sp    %p %p \n", (void*) ctxt.ra,(void*) ctxt.sp); 
+  printf("s0  s1    %p %p\n", (void*) ctxt.s0, (void*) ctxt.s1 ); 
+  printf("s2  s3    %p %p\n", (void*) ctxt.s2, (void*) ctxt.s3 ); 
+  printf("s4  s5    %p %p\n", (void*) ctxt.s4, (void*) ctxt.s5 ); 
+  printf("s6  s7    %p %p\n", (void*) ctxt.s6, (void*) ctxt.s7 ); 
+  printf("s8  s9    %p %p\n", (void*) ctxt.s8, (void*) ctxt.s9 ); 
+  printf("sA  sB    %p %p\n", (void*) ctxt.s10, (void*) ctxt.s11 ); 
+  #endif
+  char *reg[] = {
+  [0]   "ra ",
+  [1]   "sp ",
+  [2]   "s0 ",
+  [3]   "s1 ",
+  [4]   "s2 ",
+  [5]   "s3 ",
+  [6]   "s4 ",
+  [7]   "s5 ",
+  [8]   "s6 ",
+  [9]   "s7 ",
+  [10]  "s8 ",
+  [11]  "s9 ",
+  [12]  "s10",
+  [13]  "s11"
+  };
+  uint64 * ct;
+  ct = (void *) &ctxt;
+  uint64 buffer;
+  for(int i=0; i<14;i++){
+    buffer = ct[i];
+    printf("%s - %lx\n", reg[i], buffer);
+  }
+}
+
+void
+trapframedump( void *ctxt){
+  char *reg2[] = {
+  [0]    "k_satp    ",
+  [1]    "k_sp      ",
+  [2]    "k_trap    ",
+  [3]    "epc       ",
+  [4]    "k_hartid  ",
+  [5]    "ra ",
+  [6]    "sp ",
+  [7]    "gp ",
+  [8]    "tp ",
+  [9]    "t0 ",
+  [10]   "t1 ",
+  [11]   "t2 ",
+  [12]   "s0 ",
+  [13]   "a0 ",
+  [14]   "s1 ",
+  [15]   "a1 ",
+  [16]   "a2 ",
+  [17]   "a3 ",
+  [18]   "a3 ",
+  [19]   "a4 ",
+  [20]   "a5 ",
+  [21]   "a6 ",
+  [22]   "a7 ",
+  [23]   "s2 ",
+  [24]   "s3 ",
+  [25]   "s4 ",
+  [26]   "s5 ",
+  [27]   "s6 ",
+  [28]   "s7 ",
+  [29]  "s8 ",
+  [30]  "s9 ",
+  [31]  "s10",
+  [32]  "t3 ",
+  [33]  "t4 ",
+  [34]  "t5 ",
+  [35]  "t6 "
+  };
+  uint64 *ct = ctxt;
+  uint64 buffer;
+  for(int i=0; i<36;i++){
+    buffer = ct[i];
+    printf("%s - %lx\n", reg2[i], buffer);
+  }
+
+  int a = 1;
+  a++;
 }
