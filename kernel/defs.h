@@ -110,6 +110,7 @@ void            procdump(void);
 void            procdumpmore(struct proc *);
 void            contextdump(struct context ctxt);
 void            trapframedump( void *);
+void            pagedump(pagetable_t ,uint64);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

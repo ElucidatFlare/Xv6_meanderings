@@ -179,3 +179,34 @@ Los uint64 se escribian bien con "%lx" en hex y "%ld" en decimal. Pero no habia 
 Pase gran parte del dia para mejorar procdump() para Printear toda la memoria de cada proceso. Voy a ver en detalle Que registros me son de interes,
 
 Para acceder el Memory dump, Simplemente ejecutar Ctrl+p en consola.
+
+> Log 08
+
+Las horas de sueño son minimas, Crei que no encontraria ni alguna idea de como avanzar en este punto. Al parecer la vuelta gigante de Logs 01-06 si me ayudaron un poco, pero tambien casi nada... ahora comprendo... 
+
+Andaba armando un dumper de la Pagetable y PTE, pero creo que finalmente abandono esta en pos de modificar riscv de verdad.
+
+Con gran seguridad (Espero) en riscv.h agregare a la definicion del PTE
+~~~
+...
+#define PTE_RO (1L << 5) // READ ONLY PERMISION
+...
+~~~
+En teoria, no debiera causar problemas, el offset de los PTE es de 10 Bits, y se ocupan solo los bits 5~0. El calculo de PA no es afectado por este y...
+No.. Una VA tiene [63-39] De solo 0. (9 bits) Por cada nivel de PTE y son Niveles 2, 1, 0. y luego (12 bits) de offset.
+Un PTE tiene 10 bits de offset... equivalentes al tamaño de cada nivel con 1 bit verificador..
+Entonces,
+VA = [0000...0000] [ PTE lvl 2 | V ] [ PTE lvl 1 | V ] [ PTE lvl 0 | V ] [ OFFSET 12 bits ]
+PTE = [  Codigos de PA ] [ PTE siguiente ] [ V ]  y luego con PA...
+...
+No, Porque PX(,va) retorna el indice de las 512 entradas... Ya me perdi denuevo. Y ya que creia que lo tenia.
+Oh no?, Ya que mas da. Me estoy dando vueltas ante el hipotetico crasheo, sin intentarlo.
+Asumire que puedo tomar ese bit sin Problema. Y si se rompe todo... A todo sumare +1 a todo numero que se vea relevante. para hacerle espacio.
+
+No Tengo idea de lo que estoy haciendo, no tengo idea donde continuar, no tengo idea como afrontar esto, estoy cansado de seguir el libro/clase/codigofuente funciones variables y que ninguno me lleve a alguna idea de como resolver esto. como voy a proteger la memoria... si nisiquiera estoy seguro que mi dump de la Pagetable esta correcto, ya que no se si son entradas en distintos niveles 2 - 1 o las finales del nivel 0. Como voy a agregar o trabajar con bits, no veo donde poer una rutina que modifique esa entrada, porque no veo una rutina que checkee su estado, fuera del momento de Allocar espacio o Liberarlo. No Leerlo o modificarlo. Tengo que meterme con los diferentes contextos? Algo de eso en la cima de Riscv.h  que se ve esoterico? Machine Status Surpervisor Status. Exceptions y Interrupt Handlers, y todo en eso de asm volatile que no entiendo. Yo.. yo... 
+
+Ya fue, eh estado toda la semana siquiera queriendo entender el problema, pero ni si quiera puedo empezar a imaginar donde integrar codigo.
+
+VM.c? kalloc.c? memlayout.c? riscv.h?, proc.c? exex.c? pipe.c? umalloc.c? start.c ? ando dando vueltas por todo este codigo fuente, y nada tiene sentido...
+
+En algunos momentos tenia la idea de armar un struct con un lock y simplemente que si se llamaba tirara un error. Pero un Lock solo se me ocurre que viva como programa/proceso, y no como una marca en la paginacion y que el sistema lea esa paginacion, y que tire el error de ahi. no me sale, no se me ocurre, no se puede. nose puede. Nose asfasdfasdfsadfsdfsadfsdfsdafsdafsdafsadfsdafsdafsdafsdfsdafsadsfdafasdfsdafsdafasdsfdfsdafsdfsadfsadfasdfsadfasdfsdafsdafsadfsdafsdfasdfasdfsadfsdaafsdfsafsdafsad.

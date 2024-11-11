@@ -704,19 +704,17 @@ procdumpmore(struct proc *p)
 {
 
   printf("\n");
-
-  printf("\n");
-  printf("kstack :  %p %ld\n", (void*) p->kstack , p->kstack);
-  printf("sz     :  %p %ld\n", (void*) p->sz , p->sz);
+  printf("*****************************\n");
+  printf("kstack :  %lx\n", p->kstack);
+  printf("sz     :  %lx       %ld\n", p->sz , p->sz);
   printf("PageT *:  %p\n", p->pagetable);     // uint64 : 512 PTEs
   printf("TrapF *:  %p\n", p->trapframe);     // * to struct // struct (288 bytes) -> 0x120
   //printf("Contx *:  %p\n", &(p->context) );   // struct (112 bytes) -> 0x70
   printf("Cwd   *:  %p\n", p->cwd); // inode
-  printf("---------------------\n");
+  printf("*****************************\n");
   contextdump(  p->context);
-  printf("---------------------\n");
-  trapframedump(p->trapframe);
-  printf("---------------------\n");
+//  trapframedump(p->trapframe);
+  pagedump(p->pagetable, p->sz);
   printf("\n");
 
   
@@ -735,7 +733,7 @@ contextdump(struct context ctxt)
   printf("sA  sB    %p %p\n", (void*) ctxt.s10, (void*) ctxt.s11 ); 
   #endif
   char *reg[] = {
-  [0]   "ra ",
+  [0]   "ra ", //
   [1]   "sp ",
   [2]   "s0 ",
   [3]   "s1 ",
@@ -753,59 +751,87 @@ contextdump(struct context ctxt)
   uint64 * ct;
   ct = (void *) &ctxt;
   uint64 buffer;
+  printf("---------Context---------\n");
   for(int i=0; i<14;i++){
     buffer = ct[i];
-    printf("%s - %lx\n", reg[i], buffer);
+    printf("%s  - %lx\n", reg[i], buffer);
   }
+
 }
 
 void
 trapframedump( void *ctxt){
   char *reg2[] = {
-  [0]    "k_satp    ",
-  [1]    "k_sp      ",
-  [2]    "k_trap    ",
-  [3]    "epc       ",
-  [4]    "k_hartid  ",
-  [5]    "ra ",
-  [6]    "sp ",
-  [7]    "gp ",
-  [8]    "tp ",
-  [9]    "t0 ",
-  [10]   "t1 ",
-  [11]   "t2 ",
-  [12]   "s0 ",
-  [13]   "a0 ",
-  [14]   "s1 ",
-  [15]   "a1 ",
-  [16]   "a2 ",
-  [17]   "a3 ",
-  [18]   "a3 ",
-  [19]   "a4 ",
-  [20]   "a5 ",
-  [21]   "a6 ",
-  [22]   "a7 ",
-  [23]   "s2 ",
-  [24]   "s3 ",
-  [25]   "s4 ",
-  [26]   "s5 ",
-  [27]   "s6 ",
-  [28]   "s7 ",
-  [29]  "s8 ",
-  [30]  "s9 ",
-  [31]  "s10",
-  [32]  "t3 ",
-  [33]  "t4 ",
-  [34]  "t5 ",
-  [35]  "t6 "
+  [0]    "satp", // kernel page table
+  [1]    "sp  ", // top of process's kernel stack
+  [2]    "trap", // usertrap()
+  [3]    "epc ", // saved user program counter
+  [4]    "hart", // saved kernel tp
+  [5]    "ra  ",
+  [6]    "sp  ", // top of process's stack
+  [7]    "gp  ",
+  [8]    "tp  ", //the thread pointer, which xv6 uses to hold the Hartid (core number)
+  [9]    "t0  ", //
+  [10]   "t1  ", //
+  [11]   "t2  ", // 
+  [12]   "s0  ",    //
+  [13]   "s1  ",    //
+  [14]   "a0  ", // --
+  [15]   "a1  ", //
+  [16]   "a2  ", //
+  [17]   "a3  ", //
+  [18]   "a4  ", //
+  [19]   "a5  ", //
+  [20]   "a6  ", //
+  [21]   "a7  ", // --
+  [22]   "s2  ",    // **
+  [23]   "s3  ",
+  [24]   "s4  ",
+  [25]   "s5  ",
+  [26]   "s6  ",
+  [27]   "s7  ",
+  [28]   "s8  ",
+  [29]   "s9  ",
+  [30]   "s10 ",
+  [31]   "s11 ",
+  [32]   "t3  ", //
+  [33]   "t4  ", //
+  [34]   "t5  ", //
+  [35]   "t6  "  //
   };
   uint64 *ct = ctxt;
   uint64 buffer;
+  printf("------TrapFrame------\n");
+  printf("--------Kernel-------\n");
+
   for(int i=0; i<36;i++){
+    if (i==5){
+    printf("--------------------\n");
+    }
     buffer = ct[i];
     printf("%s - %lx\n", reg2[i], buffer);
   }
+  printf("---------------------\n");
 
   int a = 1;
   a++;
+}
+
+void 
+pagedump(pagetable_t page, uint64 sz ){
+  pte_t pte;
+  uint64 pa, i;
+  for ( i = 0; i<512; i ++){
+  //pte = walk(page, i, 0);
+    pte = page[ i];
+    if ( (pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0 ){
+      uint64 child = PTE2PA(pte);
+      printf("         %lx %lx %lx  \n",pte, pte & PTE_V, (pte_t) &pte ) ;
+      pagedump( (pagetable_t) child,sz);
+      
+    }else if (pte & PTE_V){
+      pa = PTE2PA(pte);
+      printf("%lx %lx %lx %lx \n", pa,pte, pte & PTE_V,  (pte & (PTE_R|PTE_W|PTE_X))) ;
+    }
+  }
 }
