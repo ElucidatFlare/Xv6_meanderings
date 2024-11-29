@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"user.h": "c",
+			"types.h": "c"
+		}
+	}
+}

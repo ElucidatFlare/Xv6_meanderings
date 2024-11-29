@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/*.asm": true,
+        "**/*.d": true,
+        "**/*.o": true,
+        "**/*.sym": true,
+        "**/_*": true
+
+    }
+}
