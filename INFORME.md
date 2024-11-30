@@ -97,7 +97,7 @@ Por ultimo "stati" parece llamar varios valores de los inodos, pero no se en que
 
 > Log 04
 
-I was checking the Read Write implementations, but The compiling crashed. Testing by removing parts, the culprits seems to ve the permission added in "dinode", porque en mkfs se hace un test sobre el tamaño en disco...
+Andaba chequeando la implementacion Read Write, pero crasheo en la compilacion. Testeando removiendo partes, el culpable parece haber sido el permiso agregado en "inodo" porque en mkfs se hace un test sobre el tamaño en disco...
 Creo que mi temor de romper el balance de 4 bytes en el tamaño del struct si era justificado
 Actualmente sin permiso su sizeof() es 64, y con tenia 68. El punto de fallo es un modulo con "BSIZE" y eso es 1024
 
