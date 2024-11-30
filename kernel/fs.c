@@ -205,9 +205,12 @@ ialloc(uint dev, short type)
   for(inum = 1; inum < sb.ninodes; inum++){
     bp = bread(dev, IBLOCK(inum, sb));
     dip = (struct dinode*)bp->data + inum%IPB;
+    dip->perm = I_RW;   // ★★★ Init perms
+    printf("Hewwo1 %x \n", dip->perm);
     if(dip->type == 0){  // a free inode
       memset(dip, 0, sizeof(*dip));
       dip->type = type;
+
       log_write(bp);   // mark it allocated on the disk
       brelse(bp);
       return iget(dev, inum);
@@ -234,6 +237,7 @@ iupdate(struct inode *ip)
   dip->major = ip->major;
   dip->minor = ip->minor;
   dip->nlink = ip->nlink;
+  dip->perm = ip->perm;       // ★★★ Update perms
   dip->size = ip->size;
   memmove(dip->addrs, ip->addrs, sizeof(ip->addrs));
   log_write(bp);
@@ -351,6 +355,7 @@ iput(struct inode *ip)
     ip->type = 0;
     iupdate(ip);
     ip->valid = 0;
+    ip->perm = 3;
 
     releasesleep(&ip->lock);
 

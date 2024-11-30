@@ -25,9 +25,18 @@ struct inode {
   short major;
   short minor;
   short nlink;
+  uint perm;             // ★★★ Permisions ★★★
+  uint64 pad[7];             // ★★★ Padding ★★★
   uint size;
   uint addrs[NDIRECT+1];
 };
+
+// ★★★ Me dio ganas de usar las flags como en mi de riscv.h, quizas me sean utiles...
+#define I_N 0x0
+#define I_R 0x1
+#define I_W 0x2
+#define I_RW 0x3
+#define I_MM 0x5 //Imutable
 
 // map major device number to device functions.
 struct devsw {
