@@ -712,7 +712,6 @@ procdump(void)
 //-------------------------------------------------------------
 
 int send(message *msg){
-  printf("Sending %s\n", qMail->content);
   message *m;
   // Revisar si hay espacio
   // Moverse a la posicion libre
@@ -727,41 +726,49 @@ int send(message *msg){
     headMail = 0;
   // Guardar Mensaje, mover indices
     m = &queueMail[++tailMail];
-    safestrcpy( m->content, qMail->content, strlen(qMail->content)); // Copia la string al mensaje
+    safestrcpy( m->content, qMail->content, 1+strlen(qMail->content)); // Copia la string al mensaje
     m->sender_pid = qMail->sender_pid;
   } else {
     m = &queueMail[++tailMail];
-    safestrcpy( m->content, qMail->content, strlen(qMail->content)); // Copia la string al mensaje
+    safestrcpy( m->content, qMail->content, 1+ strlen(qMail->content)); // Copia la string al mensaje
     m->sender_pid = qMail->sender_pid;
   }
   release(&queueLock);
   release(&mailLock);
+  printf("Sending %s\n", m->content);
+  printf("From %d\n\n", m->sender_pid);
   // Desbloquear queue
   //queueMail[ queueMail ];
   return 1;
 }
 
 int receive(char *buffer){
-//  MSG *receiver;
-//  receiver = &baseMsg;
+
   message *m;
   acquire(&queueLock);
   if (headMail == -1 ){
     printf("Panic: No Messages\n");
-    release(&mailLock);
+    release(&queueLock);
     return -1;
   } else if (headMail == tailMail){
     m = &queueMail[headMail];
+    printf("Receive1: %s\n", m->content);
+    printf("Buffer %p\n", buffer);
+    printf("Buffer %s\n", buffer);
+
     safestrcpy( buffer, m->content, strlen(m->content));
     headMail=-1;
     tailMail=-1;
 
   } else {
     m = &queueMail[headMail];
+    printf("Receive2: %s\n", m->content);
+    printf("Buffer %s\n", buffer);
+
     safestrcpy( buffer, m->content, strlen(m->content));
     headMail++;
   }
-  release(&mailLock);
+  release(&queueLock);
   //buffer = queueMail[1]->content;
   return 1;
 }
@@ -772,9 +779,9 @@ void envelope(char *buffer, int pid){
   
   // APlicar un lock aqui
   acquire(&mailLock);
-  safestrcpy( carta->content, buffer, strlen(buffer)); // Copia la string al mensaje
+  safestrcpy( carta->content, buffer, strlen(buffer)+1); // Copia la string al mensaje
   carta->sender_pid = pid;
-  printf("Encarted: %s", carta->content);
+  printf("Encarted: %s\n", carta->content);
 }
 
 void

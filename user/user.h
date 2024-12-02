@@ -23,7 +23,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int send(const char*);
-int receive(const char*);
+int receive(char*);
 
 // ulib.c
 int stat(const char*, struct stat*);

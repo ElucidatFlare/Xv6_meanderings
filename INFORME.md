@@ -213,6 +213,7 @@ Existen send y receive en sistema,
 dentro de proc.c estan
 send(), receive(buffer), envelope(msg) y queueInit()
 Envia  la carta- Recibe la carta- Envuelve la carta en el sobre - Y el que inicializa la estructura de cola y mensajes.
+Tambien dentro de las funciones, hay candados, para evitar problemas.
 
 De momento- Tire el inicializador en procinit(), para que corriera con el boot del sistema.
 
@@ -220,3 +221,24 @@ El sistema Compila. Y es hora de ver si puedo crear un programa test, para proba
 Pero lo importante es que esto es Entregable de momento. 
 
 ToT
+
+----
+
+El test de prueba se llamara "try"
+Por la facilidad de escribirlo con rapidez y poder compilar y retestear con alta velocidad.
+Para correr escribir "tri" en la consola una vez compilado xv6
+
+----
+
+Entonces..., Hay que crear un programa que haga fork, que hallan 2 procesos y con sleep awake esperar a que se pasen mensajes. Interesante.
+
+Logre correr Hello world.
+Ando probano las funciones.
+Puedo crear un buffer, puedo enviar mensajes
+Pero de momento no puedo recibir el mensaje, y no se porque. D':
+
+Creo que es porque el buffer esta malloqueado en el programa y el buffer enviado usa esa direccion virtual dentro del kernel.
+Ni idea como podria mandar memoria de ese tamaño entre kernel y user... Y queda 1 hora...
+
+Si voy a tener que meter manos a ultima hora con memoria.
+Este es mi envio semidefinitivo, previo a romper todo cambiando como funciona receive.
