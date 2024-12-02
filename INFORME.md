@@ -1,178 +1,222 @@
-# Reporte de progreso en la Tarea 0 y sus resultados.
-
+# Reporte de progreso en la Tarea 5
 Entrega por - A_V
 
-## Tarea 0: Instalación y Ejecución de xv6
+## Tarea 5:
+La tarea consiste en implementar un sistema simple de comunicación entre procesos (IPC) en xv6, utilizando una cola de mensajes dentro del kernel. A continuación, se desglosan los pasos en secciones, asignándoles puntaje basado en su complejidad y relevancia para el objetivo general.
 
 ### Objetivo
-Instalar xv6, demostrar que está funcionando correctamente en tu computadora, y compartir tu trabajo en un repositorio de GitHub.
+
+1.⁠ ⁠(0.5 puntos) Crear una estructura de datos para los mensajes. Puede ser algo simple, como un array de char de tamaño fijo, o una estructura más compleja que incluya metadatos como el tamaño del mensaje o un identificador del remitente:
+
+    typedef struct message {
+        int sender_pid;
+        char content[128];
+    } message;
+2.⁠ ⁠(0.5 puntos) Implementar la cola de mensajes como una estructura global en el kernel
+
+3.⁠ ⁠(0.5 puntos) Implementar la llamada al sistema sys_send
+
+3.⁠ ⁠(1.5 puntos) Implementar la llamada al sistema sys_receive
+
+Usar las funciones sleep y wakeup ya disponibles en xv6.
+Despertar al proceso bloqueado cuando se agregue un nuevo mensaje a la cola.
+3.⁠ ⁠(1 punto) Usar un mecanismo de sincronización como un spinlock para evitar que múltiples procesos accedan a la cola simultáneamente.
+
+3.⁠ ⁠(1.5 puntos) Crear un programa que haga un fork para generar dos procesos:
+Proceso escritor: Llame repetidamente a sys_send para enviar mensajes.
+Proceso lector: Llame a sys_receive para recibir y mostrar mensajes.
 
 
-1. Clonar el Repositorio
-2. Crear una Nueva Rama
-3. Instalar Dependencias
-4. Compilar xv6
-5. Ejecutar xv6
-6. Verificar la Instalacion
-7. Documentar la Instalacion
-8. Captura de Pantalla
-9. Commit y Push
-10. Compartir en Github
+Validar el comportamiento:
 
-### Proceso
+Asegurar que los mensajes enviados sean correctamente recibidos en orden.
+Comprobar que el lector se bloquee si no hay mensajes y que se despierte cuando lleguen nuevos.
 
-#### Prologo
+### Desarrollo
 
-Todo comenzo con la instalacion de Ubuntu,
-Ah si, el viejo ubuntu, crei que ya no tendria que toparme con instalar linux en mi maquina personal, pero aqui estamos denuevo. Han pasado años desde que cruze caminos con aquel OS, y sabia que andaria dando vueltas por las rafagas de problemas y cambios que ese pedazo de codigo de 5 condados mas alla de la llanura me traeria.
+Ya no puedo mas... :c
 
-Debo decir que estaba en lo correcto. Pero ya me conozco una que otra de sus triquerias, y no era mi primer rodeo, pero mejor dejo de ruminar en las peripecias que salieron antes de partir con la tarea misma. Y voy al relato de la resolucion del trabajo asignado
+Veamos, que se puede hacer 
 
-#### Los primeros avances
+Colas de mensaje, entonces defino en alguna parte el struct, lo hago global para que todos los procesos tengan acceso, armo sys_send y sys_receave...
 
-Una ves instalado el OS, actualizado software, configurado partes del OS, y leido un poco de como funcionaba Linux. El primer intento de progresar fue ponerse a tratar de avanzar, segun lo Aparecia en la PPT1 y lo escrito en el servidor de discord.
+Tambien agregarlos como llamadas de sistema... ok, a buscar en las clases sobre esto...
 
-En esta etapa mis acciones fueron:
-- Abrir varias pestañas con links random de repos 
-    que aparentemente Necesitaria
-- Descargarlas en un zip formato zip. y organizar 
-un directorio con los archivos
-- Investigar mas comandos de linux y tratar de Instalar todo
+Agregue SYS_send/receive a las llamadas del systema por ahora.
+A la rapida, modificando Syscall.h .c user.h usys.pl. y sysproc.c
 
-Segun el PPT habria que instalar:
-VSCODE, Git, qemu (riscv64-softmmu), Riscv toolchan y algo llamado XV6
+Similar como en la tarea 1... Lo unico que supe hacer...
+Me eche la tarea 3 y 4, y ahora hago esta a corto de tiempo... quizas no meresco pasar el ramo, quisar debiera recursarlo... pero no puedo rendirme aqui ni ahora... ando con el tiempo justo para el calendario del proximo año... y todavia queda el examen... ok... animo... ...
 
- - VSCode: No hubo grandes complicaciones
- - Git: No hubo complicaciones, En instalar...
 
-Y el resto..., 
+Como no quiero pensar en posibles caidas y errores de meter manos en donde no tuve exito en el pasado. Me centrare en agregar todo a proc.c y .h
 
-#### La experiencia Linux tm
 
-En estos primeros intentos, iva principalmente guiado por post sueltos, y tratando de resolverlo todo una cosa a la vez.
+~~Al fondo de proc.h defino la estructura~~
+Por seguridad, defino los mensajes como se pide en Types.h
+~~~c
+typedef struct message {
+    int sender_pid;
+    char content[128];
+} message;
+~~~
 
- - Qemu: En mi primer intento de instalarlo, Fue buscar comandos de instalacion de diversar fuentes.
-    - Stackoverflow, posts y discuciones, la pagina oficial, pero todo diferia en la respuesta y/o no resultaba. Gravemente con la falta familiaridad con todos los quirks y mañas que hay en todo lo que se hace con linux.
-    Aparentemente instalacion mediante APT, ya no aceptaba los comandos para instalar qemu, ya que lo separaron en paquetes mas pequeños, y solo se instalaria con el nombre de paquete preciso, para el uso preciso, para la aplicacion precisa...
-    * Aplique el "qemu-systems" pero como que no importa mucho gracias a pasos futuros
+Ok, Item 1: completado,
+Items 3 & 4: En progreso;
 
- - XV6, Riscv64 y Riscv Toolchain:
-    - Llamenme Capitan Ahab, ya que aqui vino mi ballena.
-    - Al igual que con Qemu, la variedad de instructivos contradictorios era basta. y tomar paso a paso comandos de "configs", "install" y "Makes" fueron donde recayo la mayor de mis vueltas y pesares.
-    - Pero parte de estos problemas viendo en retrospectiva, es que todo lo que tiene que ver con computadores es complicado y es parte del proceso...
-#### Instalando las dependencias
+Ahora... colas, primero que entra, primero en salir, y que mantenga los mensajes..
 
-   Como XV& necesitaria al Toolchain, y esa era la pieza que mas se omentaba en el servidor, decidi partir por esa.
+Sys_send/receive
 
-   La mayoria de las guias siempre pedian
-   - Clona un repo
-   - Crear carpetas, mover directorios y todo en terminal
-   - Sudo install muchas cosas
-   Y los pasos de compilar...
-   Como gajes del oficio de este paso, al parecer el comando curl si no se instala con el comando correcto,Ubuntu lo instalara con su nuevo formato que usa para manejar paquetes de los snaps, y me causo problemas con que no tiene permisos para hacer otros cambios? No se, simplemente lo tuve que instalar, fallo y la explicacion parecia mas Linux esoterica de lo que me acomoda informarme. Y Tambien, como Python3 ah reemplazado a Python2, tuve que buscar como instalar un paquete externo, porque aparentemente en una de las compilaciones que intente, se rompia porque un programa al llamar a python pedia con un comando deprecado?. Eh... bueno, me marea tratar de comprenderlo, pero instalando paquetes de los que no se nada a ciegas, eventualmente ese tema se arreglo.
-   - Fuera de eso, efectivamente, instalar dependencias se resumio a usar:
+Tomando ideas de la estructuras presentes en umalloc.c armamos una struct de queues, y agregamos la cabeza del queue de forma global, todo esto lo agregare en proc.c
 
-   `sudo apt-get install <Paquetes pedidos en documentos de instalacion>`
+~~~c
+struct msgQueue {
+  struct msgQueue *next;
+  message *msg;  
+};
 
-#### Compilar y ejecutar: (El toolchain)
+typedef struct msgQueue MSG;
 
-   - Multiples horas de compilacion para algo que podria si o no funcionar
+static MSG base;
+static MSG *latest;
+~~~
+El struct msgQueue Contiene el pointer al mensaje y un pointer al siguente mensaje en la lista,
 
-Hubieron multiples intentos. tengo como 5 carpetas con repos de diferentes paginas, de instrucciones que se frenaron por diversos motivos. 
+"base" se guarda en memoria global, y es donde se tiene guardada el inicio de la Queue
+"latest" es un puntero al ultimo elemento de la queue, me base en lo que habia en umalloc.c y si bien se que sus intricancias de porque está o no está pueden ser diferentes.~~(Quisas para Pilas/Colas Bidirecionales?)~~ Lo mantendre por la prisa.
+Addendum: "Latest" es el puntero al final de la cola, donde se guardan los nuevos Elementos en la cola.
+---
+Tratando de compilar, rectifique las llamadas de sistema de send/receive en syscall.c
+Para que en el momento creen un uint64, que tiene mismo tamaño de un pointer, lea el argumento de la llamada y luego castee la funciones send() receive() que estoy elaborando en proc.c
+Dentro de estas, casteo el pointer al tipo de dato que elaboro la funcion para que compile el codigo.
+~~~c
+uint64
+sys_send(void)
+{
+  uint64 msg;
+  argaddr(0, &msg);
+  return send((message *)msg);
+}
 
-#### Git:
-   Abandonamos el paso anterior porque en todo esto lo eh hecho localmente, y hasta ese punto no habia visto el documento T0.md
-# :upside_down_face: 
- - Se clono el repo a una carpeta local,
- - se entro a la carpeta y comenzo a trabajar con vscode
- - Configure git.config con la cuenta de github, el token personal
- - Comenze una tangente que tardo mucho para recordar como funciona git
- - cree una repo en mi cuenta personal, y la deje vacia
- - Cree una nueva branch
- - Se cambio el repositorio remoto del git en la carpeta clonada
-    - desde la duente del repo original, hacia el repo personal
- - Le di triple confirmacion de hacer push no lo mandaria al repo original
- - Mande el Push al repo personal
- 
- Despues de eso reviso lo pedido y me doy cuenta que no quedo como fork.
- pero quedara como "Todo" para mas adelante.
+uint64
+sys_receive(void)
+{
+  uint64 buffer;
+  argaddr(0, &buffer);
+  return receive( (char *)buffer);
+}
+~~~
+Pudo haber mejores formas, pero ando con prisa.
+---
+Ahora, Andaba definiendo en proc.c send() y receive(), agregue su nombramiento en defs.h
+Y de momento son:
 
- ##### Link del repositorio
+~~~c
+int send(message *msg){ //El plan es que ambas retornen 1 en exito, y 0 en error
+  MSG *sender;          
+  sender = &baseMsg; //Hubiera preferido dejar todo vacio con un return 1, pero
+  sender->msg = msg; //El compilador me obliga a usar en algun punto baseMsg de momento.
+  return 1;
+}
 
-    https://github.com/ElucidatFlare/Xv6_meanderings
+int receive(char *buffer){
+//  MSG *receiver;
+//  receiver = &baseMsg;
+  buffer = baseMsg.msg->content;
+  return 1;
+}
+~~~
+Addendum 2: agregue el sufijo "Msg" a "base" y "latest"  con miedo a que haya una sobreescritura en la memoria global con umalloc.c
+Sin embargo, este es tan solo la funcion "Vacia", solo con lo nesesario para que me compile xv6 sin ponerme warning/error.
 
- #### RE: Compilar y ejecutar:
+El plan ahora es:
+Como en sys_send() requiere el message. Para ser enviado a la cola
+Y       sys_receive() el buffer, pero todas las definiciones de syscalls que veo son definidas en void con extraccion en funciones tipo arg_type, es que las llamadas del sistema llamen a los metodos definidos fuera de esta.
 
-Entre varios intentos de compilar y ejecutar el toolchain con diversos grados de exito, 
+Entonces. Send y receive son mi prioridad ahora.
 
-Al combinar los comandos de la guia que mas me resulto, junto con leer en extremo detenimiento el instructivo en la guia del XV6 pedido en el repo de la tarea 0.
 
-Finalmente comprendi.
+Si "send" un Mensaje, entonces. el plan es
+* Adquirir candado de la cola
+* Allocar un MSG para la cola?. (Debiera usar malloc en el MSG? si es que lo guardare en Static?)
+   * Revisar la mejor forma de inicializar MSG, pero usarlo finalmente.
+* Anotar el Mensage en el MSG;
+* Anotar el MSG en "Latest". Asegurarse de que si la cola esta vacia, "Latest" y "Base" sean iguales.
+* Retornar 1 en exito.
+* Abrir el lock de la cola
 
-Comprendi que hacia en detalle el
-
-    ./configure --prefix=something
-
-El:
-
-    make something
-
-Y que estaba haciendo mal hasta aquel momento.
-
-En una de las multiples carpetas donde trataba de instalar el toolchain, de uno de los recursos disponibles,
-
-Uno utilizaba un par de scripts.sh para la parte de instalar dependencias y compilar. Fue el que siguiendo la misma guia me llevo mas lejos, pero no corria con el "make qemu" de la tarea. Pero si compilaba test cases incorporados, y comandos que llamaban al programa existian.
-
-(Como adendum, en algun punto, de experimentar y resolver todo esto, tambien estuvo el proceso de agregar definitivamente el camino de el toolchain "instalado/compilado" a las variables de entorno {$PATH}, pero no lo puedo fijar a merito de su propia seccion)
-
-La gran diferencia, aquel compilaba a un formato diferente, algo relacionado con 32bits con mas parametros,  y otros detalles.
-
-Con esto, comparando con las "Instrucciones" del GNU-toolchain oficial,  finalmente comprendi, que aquella no funcionaba porque estaba
- - Instalando Toolchain (LINUX), o installando Toolchain (32Bits) y otras arquitecturas...
-
-Y otras variedades a lo largo de mis intentos anteriores.
-
-Leyendo por enesima vez el README de xv6-riscv entre la minuscula monoespaciada fuente de las instrucciones...
-
-Pide: "NewLib", y "Riscv64-softmmu"...
-
-Claro, si uno va a por la toolchain y  va a instalar, uno asume que debe tomar la que dice (LINUX)...
+Y Con "Receive" entonces:
+* Lockear
+* Buscar el MSG de la "Base"
+* Guardar en el Buffer el mensaje
+* Mover la "Base" al siguiente MSG* del struct. (Practicamente borrando la antigua base (Debiera abrir una variable temporal y hacerle free quizas?. A ver de que forma compila y que aplico en send primero mejor...))
+* Un Condicional de que Pasa si la Base y Latest son iguales, o sea que no hay mas mensajes o queda 1 Mensaje
+   * Marcar como vacia la cola?...
+* Un Condicional de que pasa si no hay Mensajes.
 
 ...
 
-Compile la repo del toolchain oficial en una carpeta de facil acceso.
-Estaves solo con "Make" y no "Make linux", ni otro aparataje de una guia externa...
+Pero de momento mi implementacion no tiene forma de comprobar si es que hay 1 o 0 Mensajes...
+Ah!
+Debiera crear una rutina, que al Crear "MSG"s, *next sea 0. Y que cuando el "Base" Este "Vacia", *"Mesage" tambien apunta a 0.
+Asi, en el caso que Base == Latest, Y quede 1 Mensaje, se identifica si Message != 0. Y se Manda eso.
+Y si no hay mensajes, identifica que MSG es 0.
+...
+Solo faltaria un detalle que no eh redactado, pero eh tenido en mente.
+Una funcion extra que Cree el objeto de Message. Algo como "envelope()"- 
+Esperen un momento... Lo de Syscalls, son las funciones que podra usar el usuario.
+Los Sys_func() se convienten en func() en user.h, y son la interfaz del usuario a las llamadas,
+Pero la tarea en la presentacion requiere sys_send(message * msg)...
+Pero por otro lado ya defini sys_send(void) con el fin de mantener la harmonia de las otras definiciones de SYS_calls()...
+Supongo... mejor empiezo a tomar desiciones.
+---
+Comparando el funcionamiento de otras llamadas de sistemas.
+Send() desde el lado de usuario solamente recibira un string.
+Y dentro de el syscall se creara el Mensage con el ID, del remitente y el string.
+Y esto se pasara al Send() de proc.c
 
-Agrege la carpeta al entorno.
+Voy a crear envelope() y modificare send del lado del usuario.
+Primero, en user.h la funcion disponible al usuario es.
+~~~c
+int send(const char*);
+int receive(const char*);
+~~~
+----
+En el proceso de Definir envelope, me tope con afrontar el tema de como guardaria el mensaje.
+Iva a usar malloc() Pero espues de considerar todo las vueltas de antiguas tareas, acudi a comprobar como otras partes de xv6 allocan memoria.
+Sin embargo, El malloc disponible al usuario, es el que viene de umalloc.c,  y fuera de este, no existen malloc()s en uso a nivel kernel, por lo que podria causarme problemas, me doy cuenta.
+Si voy a allocar memoria.. y ante las 5 horas restantes, y si va a ser siguiendo las restricciones dentro de xv6
+Voy a simplemente Modificar El sistema MSG queue que tenia en mente.
 
-Volvi al dir con la tarea y el repo. 
+Porque mi fuente era la Queue de umalloc. Y Esta misma trabaja con la memoria de Sistema operativo, y rompe nada, pero es el unico punto de uso de memory alocation, no quiero poner un punto de quiebre con mi codigo metiendo mano en el dominio de ese sistema.
 
-"Make Qemu"
+Nuevo plan, siguiendo otros "Allocs" del sistema, Creare un Array estatico.
+message es char[128] y un int id... eso es 128*1 byte + 4 bytes = 132 Bytes,
+y si es global y tiene que estar en Memoria kernel, debo conservar cuanta memoria pueda, creo, no es infinita...
+Con 7 Mensajes estaticos ya casi lleno 1 KB:  (132*7)/1024 = 0.90234375
+Por lo que-
+---
+[ Perdia tiempo escribiendo cada vuelta que doy ]
+Actualmente, tuve que botar gran parte de la implementacion actual,
+Debido a que mi idea era con una cola dinamica, pero al ver los requerimientos del manejo de memoria, cambiar todo a arrays estaticos, me causo reestructurar casi todo.
 
-"Compilo"
+Al momento de redactar, logro inicializar la cola, con valores "0" en contenido, y pid -1
+Con un correo extra que hace de placeholder de correos a enviar, fuera de la cola misma..
 
-#### Verificar la Instalacion y captura de pantalla
+Reportare nuevos avanzes luego.
 
-[Imagen adjunta con la entrega]
+Ok...
 
-[//]: # "Podria Usar el linking de Markdown, pero averiguar si se mantendria su funcionalidad fuera de mi visualizador y en el de quien este corrigiendo suena mucho para algo que ya ah llevado tanto tiempo lograr"
+Existe el struct de Mensajes.
+Existen send y receive en sistema,
+dentro de proc.c estan
+send(), receive(buffer), envelope(msg) y queueInit()
+Envia  la carta- Recibe la carta- Envuelve la carta en el sobre - Y el que inicializa la estructura de cola y mensajes.
 
-#### Documentar la instalacion
+De momento- Tire el inicializador en procinit(), para que corriera con el boot del sistema.
 
-Escribo este documento...
+El sistema Compila. Y es hora de ver si puedo crear un programa test, para probar las llamadas del sistema-
+Pero lo importante es que esto es Entregable de momento. 
 
-No se, hace unos dias que complete la compilacion y ejecucion, pero la parte de github faltaba completar, y redactar este MARKDOWN tambien me tomaria mas tiempo.
-
-Estas es la recapitulacion a posteriori despues de lograr completar todo, y ando dudando de la valides o rigurosidad de este documento ya que primero me enfoque mas en instalar las cosas, Sin tener idea porque nada funcionaba.
-
-Supongo que redactar el viaje en paralelo hubiera entregado un documento mas ordenado y riguroso, Pero mas extenso, ya que hubiera puesto en detalle todas las tangentes que surgieron.
-
-En fin. 
-Si bien fue la Tarea 0
-Y la estoy entregando atrasada
-Y no me siento orgulloso de como esta redactada. 
-Puedo ver atras y apreciar que tuve que meterme en lleno a como usar linux, la terminal, manejarme en la estructura de carpetas de linux, debuguear varios problemas, configurar el git y la terminal, y todo para poder finalmente correr el xv6
-
-
-Bueno. Termino de redactar este documento, voy a ver que contiene T1.md
-
+ToT

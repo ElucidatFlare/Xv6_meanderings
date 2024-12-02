@@ -91,3 +91,21 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_send(void)
+{
+  char msg[128];
+  argstr(0, msg, 128);
+  envelope(msg, myproc()->pid);
+  return send();
+
+}
+
+uint64
+sys_receive(void)
+{
+  uint64 buffer;
+  argaddr(0, &buffer);
+  return receive( (char *)buffer);
+}

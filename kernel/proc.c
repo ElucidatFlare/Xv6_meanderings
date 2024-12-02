@@ -6,6 +6,19 @@
 #include "proc.h"
 #include "defs.h"
 
+
+#define qSize 5
+typedef struct msgQueue MSG;
+
+struct message queueMail[qSize];
+int headMail;
+int tailMail;
+struct message qMail[1];
+struct spinlock queueLock;
+struct spinlock mailLock;
+
+/********************** */
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -56,6 +69,7 @@ procinit(void)
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
   }
+  queueInit();
 }
 
 // Must be called with interrupts disabled,
@@ -693,3 +707,91 @@ procdump(void)
     printf("\n");
   }
 }
+
+
+//-------------------------------------------------------------
+
+int send(message *msg){
+  printf("Sending %s\n", qMail->content);
+  message *m;
+  // Revisar si hay espacio
+  // Moverse a la posicion libre
+  // Bloquear Queue
+  acquire(&queueLock);
+  if(tailMail == qSize-1){
+    printf("Panic: Send Message\n");
+    release(&queueLock);
+    release(&mailLock);
+    return -1;
+  } else if (tailMail == -1){
+    headMail = 0;
+  // Guardar Mensaje, mover indices
+    m = &queueMail[++tailMail];
+    safestrcpy( m->content, qMail->content, strlen(qMail->content)); // Copia la string al mensaje
+    m->sender_pid = qMail->sender_pid;
+  } else {
+    m = &queueMail[++tailMail];
+    safestrcpy( m->content, qMail->content, strlen(qMail->content)); // Copia la string al mensaje
+    m->sender_pid = qMail->sender_pid;
+  }
+  release(&queueLock);
+  release(&mailLock);
+  // Desbloquear queue
+  //queueMail[ queueMail ];
+  return 1;
+}
+
+int receive(char *buffer){
+//  MSG *receiver;
+//  receiver = &baseMsg;
+  message *m;
+  acquire(&queueLock);
+  if (headMail == -1 ){
+    printf("Panic: No Messages\n");
+    release(&mailLock);
+    return -1;
+  } else if (headMail == tailMail){
+    m = &queueMail[headMail];
+    safestrcpy( buffer, m->content, strlen(m->content));
+    headMail=-1;
+    tailMail=-1;
+
+  } else {
+    m = &queueMail[headMail];
+    safestrcpy( buffer, m->content, strlen(m->content));
+    headMail++;
+  }
+  release(&mailLock);
+  //buffer = queueMail[1]->content;
+  return 1;
+}
+
+void envelope(char *buffer, int pid){
+  message* carta;
+  carta = qMail;
+  
+  // APlicar un lock aqui
+  acquire(&mailLock);
+  safestrcpy( carta->content, buffer, strlen(buffer)); // Copia la string al mensaje
+  carta->sender_pid = pid;
+  printf("Encarted: %s", carta->content);
+}
+
+void
+queueInit(void)
+{  
+  message *m;
+  initlock(&queueLock, "Queue Lock");
+  initlock(&mailLock, "Mail_lock");
+  for(m = queueMail; m < &queueMail[5]; m++) {
+    safestrcpy( m->content, "0", 2);
+    m->sender_pid = -1;
+  }
+  headMail = -1;
+  tailMail = -1;
+  safestrcpy( qMail->content, "0u0", 4);
+  qMail->sender_pid = -1;
+//  printf("Init Mail %d\n", tailMail);
+}
+
+//-------------------------------------------------------------
