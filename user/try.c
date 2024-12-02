@@ -8,14 +8,28 @@
 
 int main(int argc, char *argv[]){
 
-    printf("Hellow world\n" );
+    printf("Hellow world\n\n" );
     char *buff = (char *)malloc(128 *sizeof(char) );
     strcpy( buff, "Test Buffer OwO");
-    printf("Buffer: %p\n", buff );
-    send("Test Sending");
+    printf("Test #0: Buffer Exists\n\n" );
+
+    printf("Buffer: %s\n", buff );
+    printf("\n");
+    
+    printf("Test #1: Recieve Empty\n\n" );
+
+    receive(buff);
+    printf("\n");
+    printf("Test #2: Sending Multiple\n\n" );
+    
+    send("Call me maybe");
+    send("Phone me Perhaps");
 //    char *buffer2 = (char *)malloc(128 *sizeof(char) );
-    //receive(buff);
+    receive(buff);
 //    printf("Buffer: %s\n", buffer2 );
+    printf("Get Buff : %s\n", buff );
+    receive(buff);
+    printf("Get Buff : %s\n", buff );
     
     
     return 0;

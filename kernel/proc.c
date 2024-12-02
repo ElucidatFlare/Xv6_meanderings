@@ -736,7 +736,7 @@ int send(message *msg){
   release(&queueLock);
   release(&mailLock);
   printf("Sending %s\n", m->content);
-  printf("From %d\n\n", m->sender_pid);
+  printf("From Process: %d\n\n", m->sender_pid);
   // Desbloquear queue
   //queueMail[ queueMail ];
   return 1;
@@ -752,20 +752,21 @@ int receive(char *buffer){
     return -1;
   } else if (headMail == tailMail){
     m = &queueMail[headMail];
-    printf("Receive1: %s\n", m->content);
-    printf("Buffer %p\n", buffer);
-    printf("Buffer %s\n", buffer);
+    printf("Receive case 1: %s\n", m->content);
+//    printf("Buffer %p\n", buffer);
+    //printf("Buffer %s\n", buffer);
 
-    safestrcpy( buffer, m->content, strlen(m->content));
+    either_copyout( 1,(uint64) buffer, m->content, 1+strlen(m->content));
+    //printf("Buffer %s\n", buffer);
+
     headMail=-1;
     tailMail=-1;
 
   } else {
     m = &queueMail[headMail];
-    printf("Receive2: %s\n", m->content);
-    printf("Buffer %s\n", buffer);
+    printf("Receive case 2: %s\n", m->content);
 
-    safestrcpy( buffer, m->content, strlen(m->content));
+    either_copyout( 1,(uint64) buffer, m->content, 1+strlen(m->content));
     headMail++;
   }
   release(&queueLock);
@@ -781,7 +782,7 @@ void envelope(char *buffer, int pid){
   acquire(&mailLock);
   safestrcpy( carta->content, buffer, strlen(buffer)+1); // Copia la string al mensaje
   carta->sender_pid = pid;
-  printf("Encarted: %s\n", carta->content);
+  //printf("Encarted: %s\n", carta->content);
 }
 
 void

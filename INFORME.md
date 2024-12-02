@@ -242,3 +242,38 @@ Ni idea como podria mandar memoria de ese tamaño entre kernel y user... Y queda
 
 Si voy a tener que meter manos a ultima hora con memoria.
 Este es mi envio semidefinitivo, previo a romper todo cambiando como funciona receive.
+
+De momento, el Buffer Local es
+
+ 0x0000000000013F80
+
+Si lo mando directo, logro que tambien refleje esta direccion.
+Sin embargo, si Creo un Char[128] en la syscall, y mando eso, el buffer en el kernel es en
+0x0000003fffff9f28
+
+En Bajo estas circunstancias, si se "Recibe" el mensaje, en el lado del kernel.
+Ahora tendria que ver como extraer el Mensaje de vuelta al buffer de la memoria de usuario.
+
+Despues de darle unas vueltas, tendria sentido que se caiga. A fin de cuentas, La memoria usuario esta en En pausa mientras que la llamada corre... 
+Mi solucion entonces?. abandonar el formato
+int receive(Buffer) y comprobar como.
+------
+Encontre como copiar la memoria desde Kernel a usuario. Los cambios estan presentes en
+Receive()
+
+Sin embargo, solo se puede testear el print del buffer Desde la memoria de usuario.
+Porque el printf no tiene acceso a la variable desde el kernel. pero eso es lo de menos.
+
+...
+
+FUNCIONA!
+
+Pero quedan 20 minutos.
+
+El test actual "Try"
+
+Comprueba que Se puede mandar receibe en la Cola vacia y que Se pueden enviar y recibir mensajes exitosamente.
+
+Quedan 10 minutos. No alcanzo a que el test haga un fork y que estos se llamen. Pero logre mas de lo que esperaba posible cuando esta tarde revisaba los requisitos, y sorprenderme con que era para hoy y no mañana el buzon. Bueno. Fue un gusto. Di una mejor batalla que con los desastres de la tarea 3 y 4. Y espero que esto me ayude.
+
+En cualquier caso. Lamento el desastre de este informe. La primera mitad es Breakdowns, y Codigo que termino no siendo utilizado. Pero En el punto actual tengo algo que funciona.
